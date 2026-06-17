@@ -45,16 +45,22 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 .quick-buttons button{margin:0;background:#fff;color:#111827;border:1px solid var(--line);padding:10px;font-size:13px}
 .template-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
 .template-buttons button{margin:0;background:#dcfce7;color:#166534}
+button.added{background:#16a34a!important;color:#fff!important;transform:scale(.98)}
+.toast{position:fixed;right:18px;bottom:18px;background:#111827;color:#fff;padding:12px 16px;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.25);z-index:999;opacity:0;pointer-events:none;transition:.25s}
+.toast.show{opacity:1}
+.template-editor{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+.template-editor textarea{min-height:120px}
 .meal-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
 .meal-tabs button{margin:0;background:#eef2f7;color:#111827}
 .meal-tabs button.active{background:#111827;color:#fff}
 
-@media(max-width:850px){header .wrap{display:block}.hero-card,.grid-4,.grid-3,.grid-2,.photo-grid,.template-buttons{grid-template-columns:1fr}.quick-buttons{grid-template-columns:repeat(2,1fr)}.meal-tabs{grid-template-columns:repeat(2,1fr)}.food-row{grid-template-columns:1fr 1fr}.section{padding:16px;border-radius:20px}h1{font-size:23px}.stat b{font-size:24px}}
+@media(max-width:850px){header .wrap{display:block}.hero-card,.grid-4,.grid-3,.grid-2,.photo-grid,.template-buttons,.template-editor{grid-template-columns:1fr}.quick-buttons{grid-template-columns:repeat(2,1fr)}.meal-tabs{grid-template-columns:repeat(2,1fr)}.food-row{grid-template-columns:1fr 1fr}.section{padding:16px;border-radius:20px}h1{font-size:23px}.stat b{font-size:24px}}
 </style>
 </head>
 <body>
 <header><div class="wrap"><div><div class="small" style="color:#d1d5db;font-weight:700;">90 DAY DIET METHOD</div><h1>102kg→70kg台を達成した<br>90日ダイエットメソッド</h1><p>目標・PFC・食事カロリー計算・毎日の記録・分析を1つに管理。</p></div><div class="badge">102kg → 70kg 目標モデル</div></div></header>
 <nav><div class="nav-inner"><a href="#home">🏠 ホーム</a><a href="#goal">🎯 目標設定</a><a href="#food">🍚 食事目安</a><a href="#daily">📝 毎日の記録</a><a href="#analysis">📈 分析</a><a href="#photo">📷 写真</a></div></nav>
+<div id="toast" class="toast">追加しました</div>
 <main>
 <section id="home" class="section">
   <div class="hero-card">
@@ -113,6 +119,18 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
       <button type="button" data-template="lunch">昼食テンプレを追加</button>
       <button type="button" data-template="dinner">夕食テンプレを追加</button>
     </div>
+    <details style="margin-top:12px">
+      <summary style="cursor:pointer;font-weight:800">テンプレートを編集する</summary>
+      <p class="small">1行に1食品ずつ入力してください。例：白米 150g / 鶏むね皮なし 200g</p>
+      <div class="template-editor">
+        <div><label>朝食テンプレ</label><textarea id="templateBreakfastText"></textarea></div>
+        <div><label>昼食テンプレ</label><textarea id="templateLunchText"></textarea></div>
+        <div><label>夕食テンプレ</label><textarea id="templateDinnerText"></textarea></div>
+      </div>
+      <button type="button" class="secondary" id="saveTemplatesBtn">テンプレートを保存</button>
+      <button type="button" class="danger" id="resetTemplatesBtn">初期テンプレに戻す</button>
+      <p id="templateMsg" class="small"></p>
+    </details>
 
     <h3>食品を検索して追加</h3>
     <div class="grid-3">
@@ -159,7 +177,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 
 <script>
 (function(){
-const RKEY="diet_records_v8_daily_food",GKEY="diet_goal_v8_daily_food",MKEY="diet_daily_meals_v8";
+const RKEY="diet_records_v9_daily_food",GKEY="diet_goal_v9_daily_food",MKEY="diet_daily_meals_v9";
 const $=id=>document.getElementById(id);
 const foodDB=[
 {name:"オートミール",cal:380,p:13.7,f:5.7,c:69.1},{name:"卵",cal:151,p:12.3,f:10.3,c:0.3},{name:"ゆで卵",cal:151,p:12.3,f:10.3,c:0.3},{name:"納豆",cal:200,p:16.5,f:10,c:12.1},{name:"鶏むね皮なし",cal:113,p:24.4,f:1.9,c:0},{name:"鶏むね皮あり",cal:191,p:19.5,f:11.6,c:0},{name:"鶏もも皮なし",cal:128,p:22,f:4.8,c:0},{name:"鶏もも皮あり",cal:190,p:16.6,f:14.2,c:0},{name:"サラダチキン",cal:113,p:24,f:1.5,c:0.5},{name:"白米",cal:156,p:2.5,f:0.3,c:37.1},{name:"玄米",cal:152,p:2.8,f:1,c:35.6},{name:"食パン",cal:248,p:8.9,f:4.1,c:46.4},{name:"うどん",cal:95,p:2.6,f:0.4,c:21.6},{name:"そば",cal:130,p:4.8,f:1,c:26},{name:"パスタゆで",cal:150,p:5.2,f:0.9,c:32},{name:"キャベツ",cal:23,p:1.3,f:0.2,c:5.2},{name:"ブロッコリー",cal:37,p:5.4,f:0.6,c:6.6},{name:"きのこ類",cal:22,p:3.1,f:0.3,c:5.2},{name:"プロテイン",cal:400,p:75,f:6,c:10},{name:"バナナ",cal:93,p:1.1,f:0.2,c:22.5},{name:"豆腐",cal:73,p:7,f:4.2,c:1.6},{name:"鮭",cal:124,p:22.3,f:4.1,c:0.1},{name:"サバ",cal:211,p:20.6,f:16.8,c:0.3},{name:"マグロ赤身",cal:125,p:26.4,f:1.4,c:0.1},{name:"ツナ水煮",cal:70,p:16,f:0.7,c:0.2},{name:"さつまいも",cal:127,p:1.2,f:0.2,c:31.9},{name:"ギリシャヨーグルト",cal:99,p:10,f:0.4,c:4},{name:"低脂肪ヨーグルト",cal:40,p:3.7,f:1,c:5.2},{name:"味噌汁",cal:40,p:2.3,f:1.1,c:5.1},{name:"プロテインバー",cal:200,p:15,f:8,c:18}];
@@ -169,11 +187,38 @@ const quickFoods=[
  {slot:"dinner",name:"白米",gram:150},{slot:"dinner",name:"鶏むね皮なし",gram:200},{slot:"dinner",name:"きのこ類",gram:100},
  {slot:"snack",name:"プロテイン",gram:30},{slot:"snack",name:"バナナ",gram:100},{slot:"snack",name:"ギリシャヨーグルト",gram:100}
 ];
-const mealTemplates={
+const defaultTemplates={
  breakfast:[{name:"オートミール",gram:80},{name:"卵",gram:100},{name:"納豆",gram:50}],
  lunch:[{name:"鶏むね皮なし",gram:200},{name:"白米",gram:150},{name:"キャベツ",gram:100}],
  dinner:[{name:"鶏むね皮なし",gram:200},{name:"白米",gram:150},{name:"きのこ類",gram:100}]
 };
+function templates(){
+ try{return JSON.parse(localStorage.getItem(TKEY)||"null")||defaultTemplates}catch(e){return defaultTemplates}
+}
+function saveTemplates(data){localStorage.setItem(TKEY,JSON.stringify(data))}
+function templateToText(arr){return (arr||[]).map(x=>`${x.name} ${x.gram}g`).join("\n")}
+function parseTemplateText(text){
+ return String(text||"").split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
+  const m=line.match(/^(.+?)\s*(\d+(?:\.\d+)?)\s*g?$/i);
+  if(m)return{name:m[1].trim(),gram:Number(m[2])};
+  return{name:line,gram:100};
+ });
+}
+function loadTemplateEditor(){
+ const t=templates();
+ $("templateBreakfastText").value=templateToText(t.breakfast);
+ $("templateLunchText").value=templateToText(t.lunch);
+ $("templateDinnerText").value=templateToText(t.dinner);
+}
+function saveTemplateEditor(){
+ saveTemplates({
+  breakfast:parseTemplateText($("templateBreakfastText").value),
+  lunch:parseTemplateText($("templateLunchText").value),
+  dinner:parseTemplateText($("templateDinnerText").value)
+ });
+ $("templateMsg").textContent="テンプレートを保存しました。";
+ showToast("テンプレートを保存しました");
+}
 function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function addDays(s,days){const d=s?new Date(s):new Date();d.setDate(d.getDate()+days);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function val(id){return $(id).value} function num(id){return val(id)===""?"":Number(val(id))} function round(n){return Math.round(Number(n)||0)}
@@ -221,6 +266,17 @@ function setMealSlot(slot){
  document.querySelectorAll("[data-slot-btn]").forEach(b=>b.classList.toggle("active", b.dataset.slotBtn===slot));
 }
 function foodByName(name){return foodDB.find(f=>f.name===name)}
+function showToast(text){
+ const t=$("toast"); if(!t)return;
+ t.textContent=text; t.classList.add("show");
+ clearTimeout(window.__toastTimer);
+ window.__toastTimer=setTimeout(()=>t.classList.remove("show"),1300);
+}
+function flashButton(btn){
+ if(!btn)return;
+ btn.classList.add("added");
+ setTimeout(()=>btn.classList.remove("added"),350);
+}
 function createFoodItem(slot,name,gram){
  const f=foodByName(name);
  if(!f)return null;
@@ -232,6 +288,7 @@ function addItemToMeal(item){
  const arr=meal();arr.push(item);saveMeal(arr);
  appendToMealText(item.slot,`${item.name}${item.gram}g`);
  renderMeal();
+ showToast(`${slotLabel(item.slot)}に${item.name}${item.gram}gを追加しました`);
 }
 function renderQuickButtons(){
  const box=$("quickButtons"); if(!box)return;
@@ -240,12 +297,14 @@ function renderQuickButtons(){
   const btn=document.createElement("button");
   btn.type="button";
   btn.textContent=`${slotLabel(q.slot)}：${q.name}${q.gram}g`;
-  btn.addEventListener("click",()=>addItemToMeal(createFoodItem(q.slot,q.name,q.gram)));
+  btn.addEventListener("click",()=>{addItemToMeal(createFoodItem(q.slot,q.name,q.gram));flashButton(btn);});
   box.appendChild(btn);
  });
 }
-function addTemplate(slot){
- (mealTemplates[slot]||[]).forEach(x=>addItemToMeal(createFoodItem(slot,x.name,x.gram)));
+function addTemplate(slot,btn){
+ (templates()[slot]||[]).forEach(x=>addItemToMeal(createFoodItem(slot,x.name,x.gram)));
+ flashButton(btn);
+ showToast(`${slotLabel(slot)}テンプレを追加しました`);
 }
 function addFood(){
  if(val("dailyFoodSelect")===""){alert("食品を選ぶか、手入力を使ってください。");return}
@@ -307,9 +366,9 @@ function exportCSV(){const rs=records();if(!rs.length){alert("記録がありま
 function clearAll(){if(confirm("すべての記録を削除しますか？")){localStorage.removeItem(RKEY);render()}}
 function escapeHtml(str){return String(str).replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[s]))}
 function loadGoal(){const g=goal();if(Object.keys(g).length){["startWeight","goalWeight","startDate","deadline","waist","chest","age","sex","height","currentWeight","activity","deficit","pRatio","fRatio","cRatio"].forEach(id=>{if(g[id]!==undefined&&$(id))$(id).value=g[id]})}}
-function init(){if(!$("startDate").value)set90();$("date").value=today();initFoodSelect();renderQuickButtons();setMealSlot("breakfast");$("preset").addEventListener("change",applyPreset);$("calcBtn").addEventListener("click",calculateCalories);$("set90Btn").addEventListener("click",set90);$("saveGoalBtn").addEventListener("click",saveGoal);document.querySelectorAll("[data-slot-btn]").forEach(b=>b.addEventListener("click",()=>setMealSlot(b.dataset.slotBtn)));
-document.querySelectorAll("[data-template]").forEach(b=>b.addEventListener("click",()=>addTemplate(b.dataset.template)));
-$("dailyFoodSearch").addEventListener("input",()=>initFoodSelect(val("dailyFoodSearch")));$("dailyAddFoodBtn").addEventListener("click",addFood);$("dailyAddCustomBtn").addEventListener("click",addCustom);$("dailyClearMealBtn").addEventListener("click",()=>{saveMeal([]);rebuildMealTextFromItems();renderMeal()});$("date").addEventListener("change",()=>{rebuildMealTextFromItems();renderMeal();});$("saveRecordBtn").addEventListener("click",saveRecord);$("todayBtn").addEventListener("click",()=>{$("date").value=today()});$("csvBtn").addEventListener("click",exportCSV);$("clearBtn").addEventListener("click",clearAll);loadGoal();const calc=calculateCalories();if(calc&&!Object.keys(goal()).length)saveGoalData({startWeight:num("startWeight"),goalWeight:num("goalWeight"),startDate:val("startDate"),deadline:val("deadline"),waist:num("waist"),chest:num("chest"),age:num("age"),sex:val("sex"),height:num("height"),currentWeight:num("currentWeight"),activity:val("activity"),deficit:val("deficit"),...calc});renderMeal();render()}
+function init(){if(!$("startDate").value)set90();$("date").value=today();initFoodSelect();renderQuickButtons();loadTemplateEditor();setMealSlot("breakfast");$("preset").addEventListener("change",applyPreset);$("calcBtn").addEventListener("click",calculateCalories);$("set90Btn").addEventListener("click",set90);$("saveGoalBtn").addEventListener("click",saveGoal);document.querySelectorAll("[data-slot-btn]").forEach(b=>b.addEventListener("click",()=>setMealSlot(b.dataset.slotBtn)));
+document.querySelectorAll("[data-template]").forEach(b=>b.addEventListener("click",()=>addTemplate(b.dataset.template,b)));
+$("dailyFoodSearch").addEventListener("input",()=>initFoodSelect(val("dailyFoodSearch")));$("dailyAddFoodBtn").addEventListener("click",()=>{addFood();flashButton($("dailyAddFoodBtn"));});$("dailyAddCustomBtn").addEventListener("click",()=>{addCustom();flashButton($("dailyAddCustomBtn"));});$("dailyClearMealBtn").addEventListener("click",()=>{saveMeal([]);rebuildMealTextFromItems();renderMeal()});$("date").addEventListener("change",()=>{rebuildMealTextFromItems();renderMeal();});$("saveRecordBtn").addEventListener("click",saveRecord);$("todayBtn").addEventListener("click",()=>{$("date").value=today()});$("csvBtn").addEventListener("click",exportCSV);$("clearBtn").addEventListener("click",clearAll);loadGoal();const calc=calculateCalories();if(calc&&!Object.keys(goal()).length)saveGoalData({startWeight:num("startWeight"),goalWeight:num("goalWeight"),startDate:val("startDate"),deadline:val("deadline"),waist:num("waist"),chest:num("chest"),age:num("age"),sex:val("sex"),height:num("height"),currentWeight:num("currentWeight"),activity:val("activity"),deficit:val("deficit"),...calc});renderMeal();render()}
 document.addEventListener("DOMContentLoaded",init);
 })();
 </script>
