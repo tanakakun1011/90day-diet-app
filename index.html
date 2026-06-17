@@ -119,11 +119,9 @@ button.added{background:#16a34a!important;color:#fff!important;transform:scale(.
     <h3>よく食べるもの</h3>
     <div class="quick-buttons" id="quickButtons"></div>
     <details class="favorite-editor" style="margin-top:12px">
-      <summary style="cursor:pointer;font-weight:800">よく食べるものを編集・並び替えする</summary>
-      <p class="small">1行に1食品ずつ入力してください。形式：食事 / 食品名 / g数</p>
-      <textarea id="favoriteText"></textarea>
-      <button type="button" class="secondary" id="saveFavoritesBtn">よく食べるものを保存</button>
-      <button type="button" class="danger" id="resetFavoritesBtn">初期状態に戻す</button>
+      <summary style="cursor:pointer;font-weight:800">よく食べるものについて</summary>
+      <p class="small">よく食べるものは、追加回数が多い食品から自動で表示されます。手動編集は不要です。</p>
+      <div id="favoriteText" class="notice">食品を追加すると自動で更新されます。</div>
       <p id="favoriteMsg" class="small"></p>
     </details>
 
@@ -142,7 +140,6 @@ button.added{background:#16a34a!important;color:#fff!important;transform:scale(.
         <div><label>夕食テンプレ</label><textarea id="templateDinnerText"></textarea></div>
       </div>
       <button type="button" class="secondary" id="saveTemplatesBtn">テンプレートを保存</button>
-      <button type="button" class="danger" id="resetTemplatesBtn">初期テンプレに戻す</button>
       <p id="templateMsg" class="small"></p>
     </details>
 
@@ -200,35 +197,39 @@ button.added{background:#16a34a!important;color:#fff!important;transform:scale(.
 
 <script>
 (function(){
-const RKEY="diet_records_v11_daily_food",GKEY="diet_goal_v11_daily_food",MKEY="diet_daily_meals_v11";
+const RKEY="diet_records_v12_daily_food",GKEY="diet_goal_v12_daily_food",MKEY="diet_daily_meals_v12";
 const $=id=>document.getElementById(id);
 const foodDB=[
 {name:"オートミール",cal:380,p:13.7,f:5.7,c:69.1},{name:"卵",cal:151,p:12.3,f:10.3,c:0.3},{name:"ゆで卵",cal:151,p:12.3,f:10.3,c:0.3},{name:"納豆",cal:200,p:16.5,f:10,c:12.1},{name:"鶏むね皮なし",cal:113,p:24.4,f:1.9,c:0},{name:"鶏むね皮あり",cal:191,p:19.5,f:11.6,c:0},{name:"鶏もも皮なし",cal:128,p:22,f:4.8,c:0},{name:"鶏もも皮あり",cal:190,p:16.6,f:14.2,c:0},{name:"サラダチキン",cal:113,p:24,f:1.5,c:0.5},{name:"白米",cal:156,p:2.5,f:0.3,c:37.1},{name:"玄米",cal:152,p:2.8,f:1,c:35.6},{name:"食パン",cal:248,p:8.9,f:4.1,c:46.4},{name:"うどん",cal:95,p:2.6,f:0.4,c:21.6},{name:"そば",cal:130,p:4.8,f:1,c:26},{name:"パスタゆで",cal:150,p:5.2,f:0.9,c:32},{name:"キャベツ",cal:23,p:1.3,f:0.2,c:5.2},{name:"ブロッコリー",cal:37,p:5.4,f:0.6,c:6.6},{name:"きのこ類",cal:22,p:3.1,f:0.3,c:5.2},{name:"プロテイン",cal:400,p:75,f:6,c:10},{name:"バナナ",cal:93,p:1.1,f:0.2,c:22.5},{name:"豆腐",cal:73,p:7,f:4.2,c:1.6},{name:"鮭",cal:124,p:22.3,f:4.1,c:0.1},{name:"サバ",cal:211,p:20.6,f:16.8,c:0.3},{name:"マグロ赤身",cal:125,p:26.4,f:1.4,c:0.1},{name:"ツナ水煮",cal:70,p:16,f:0.7,c:0.2},{name:"さつまいも",cal:127,p:1.2,f:0.2,c:31.9},{name:"ギリシャヨーグルト",cal:99,p:10,f:0.4,c:4},{name:"低脂肪ヨーグルト",cal:40,p:3.7,f:1,c:5.2},{name:"味噌汁",cal:40,p:2.3,f:1.1,c:5.1},{name:"プロテインバー",cal:200,p:15,f:8,c:18}];
 const defaultQuickFoods=[
- {slot:"breakfast",name:"オートミール",gram:80},{slot:"breakfast",name:"卵",gram:100},{slot:"breakfast",name:"納豆",gram:50},
- {slot:"lunch",name:"白米",gram:150},{slot:"lunch",name:"鶏むね皮なし",gram:200},{slot:"lunch",name:"キャベツ",gram:100},
- {slot:"dinner",name:"白米",gram:150},{slot:"dinner",name:"鶏むね皮なし",gram:200},{slot:"dinner",name:"きのこ類",gram:100},
- {slot:"snack",name:"プロテイン",gram:30},{slot:"snack",name:"バナナ",gram:100},{slot:"snack",name:"ギリシャヨーグルト",gram:100}
+ {name:"オートミール",gram:80},{name:"卵",gram:100},{name:"納豆",gram:50},
+ {name:"白米",gram:150},{name:"鶏むね皮なし",gram:200},{name:"キャベツ",gram:100},
+ {name:"きのこ類",gram:100},{name:"プロテイン",gram:30},{name:"バナナ",gram:100}
 ];
+function foodKey(name,gram){return `${name}__${gram}`}
+function usageMap(){try{return JSON.parse(localStorage.getItem(FAVKEY)||"{}")}catch(e){return{}}}
+function saveUsageMap(data){localStorage.setItem(FAVKEY,JSON.stringify(data))}
+function registerFoodUsage(item){
+ const map=usageMap();
+ const key=foodKey(item.name,item.gram);
+ if(!map[key]) map[key]={name:item.name,gram:item.gram,count:0};
+ map[key].count += 1;
+ saveUsageMap(map);
+ renderQuickButtons();
+ loadFavoriteEditor();
+}
 function quickFoods(){
- try{return JSON.parse(localStorage.getItem(FAVKEY)||"null")||defaultQuickFoods}catch(e){return defaultQuickFoods}
+ const used=Object.values(usageMap()).sort((a,b)=>b.count-a.count).slice(0,12);
+ if(used.length) return used.map(x=>({name:x.name,gram:x.gram,count:x.count}));
+ return defaultQuickFoods;
 }
-function saveQuickFoods(data){localStorage.setItem(FAVKEY,JSON.stringify(data))}
-function favToText(arr){return (arr||[]).map(x=>`${slotLabel(x.slot)} / ${x.name} / ${x.gram}g`).join("\n")}
-function parseSlotName(s){if(s.includes("朝"))return"breakfast";if(s.includes("昼"))return"lunch";if(s.includes("夕"))return"dinner";if(s.includes("間"))return"snack";return"snack"}
-function parseFavoritesText(text){
- return String(text||"").split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
-  const parts=line.split("/").map(x=>x.trim());
-  if(parts.length>=3){
-    const gram=(parts[2].match(/\d+(?:\.\d+)?/)||["100"])[0];
-    return{slot:parseSlotName(parts[0]),name:parts[1],gram:Number(gram)};
-  }
-  const m=line.match(/^(.+?)\s*(\d+(?:\.\d+)?)\s*g?$/i);
-  return{slot:"snack",name:m?m[1].trim():line,gram:m?Number(m[2]):100};
- });
+function loadFavoriteEditor(){
+ const box=$("favoriteText"); if(!box)return;
+ const used=Object.values(usageMap()).sort((a,b)=>b.count-a.count).slice(0,12);
+ box.innerHTML = used.length
+  ? used.map(x=>`<div>${escapeHtml(x.name)} ${x.gram}g：${x.count}回</div>`).join("")
+  : "食品を追加すると自動で更新されます。";
 }
-function loadFavoriteEditor(){if($("favoriteText"))$("favoriteText").value=favToText(quickFoods())}
-function saveFavoriteEditor(){saveQuickFoods(parseFavoritesText($("favoriteText").value));renderQuickButtons();$("favoriteMsg").textContent="保存しました。";showToast("よく食べるものを保存しました")}
 const defaultTemplates={
  breakfast:[{name:"オートミール",gram:80},{name:"卵",gram:100},{name:"納豆",gram:50}],
  lunch:[{name:"鶏むね皮なし",gram:200},{name:"白米",gram:150},{name:"キャベツ",gram:100}],
@@ -328,6 +329,7 @@ function createFoodItem(slot,name,gram){
 function addItemToMeal(item){
  if(!item)return;
  const arr=meal();arr.push(item);saveMeal(arr);
+ registerFoodUsage(item);
  appendToMealText(item.slot,`${item.name}${item.gram}g`);
  renderMeal();
  showToast(`${slotLabel(item.slot)}に${item.name}${item.gram}gを追加しました`);
@@ -338,8 +340,8 @@ function renderQuickButtons(){
  quickFoods().forEach(q=>{
   const btn=document.createElement("button");
   btn.type="button";
-  btn.textContent=`${slotLabel(q.slot)}：${q.name}${q.gram}g`;
-  btn.addEventListener("click",()=>{addItemToMeal(createFoodItem(q.slot,q.name,q.gram));flashButton(btn);});
+  btn.textContent=`${q.name}${q.gram}g`;
+  btn.addEventListener("click",()=>{addItemToMeal(createFoodItem(val("mealSlot"),q.name,q.gram));flashButton(btn);});
   box.appendChild(btn);
  });
 }
@@ -383,7 +385,45 @@ function updateTargetDiff(total){
 }
 function copyMealToDaily(){const arr=meal();let t={cal:0,p:0,f:0,c:0};arr.forEach(x=>{t.cal+=Number(x.cal)||0;t.p+=Number(x.p)||0;t.f+=Number(x.f)||0;t.c+=Number(x.c)||0});$("cal").value=round(t.cal);$("p").value=Math.round(t.p*10)/10;$("f").value=Math.round(t.f*10)/10;$("c").value=Math.round(t.c*10)/10;$("memo").value=(val("memo")?val("memo")+"\n":"")+"食事計算："+arr.map(x=>x.name+" "+x.gram+"g").join("、")}
 function photoToDataURL(file){return new Promise(resolve=>{if(!file){resolve("");return}const reader=new FileReader();reader.onload=e=>resolve(e.target.result);reader.readAsDataURL(file)})}
-async function saveRecord(){if(!val("date")){$("recordMsg").textContent="日付を入力してください。";return}const old=records().find(r=>r.date===val("date")),photo=await photoToDataURL($("photoInput").files[0]);const record={date:val("date"),weight:num("weight"),cal:num("cal"),p:num("p"),f:num("f"),c:num("c"),steps:num("steps"),walkCal:calcWalkCal(),breakfast:val("breakfast"),lunch:val("lunch"),dinner:val("dinner"),snack:val("snack"),workout:val("workout"),memo:val("memo"),foods:meal(),photo:photo||(old?old.photo:"")};const arr=records().filter(r=>r.date!==record.date);arr.push(record);saveRecords(arr);$("photoInput").value="";$("recordMsg").textContent="保存しました。";render()}
+async function saveRecord(){
+ try{
+  if(!val("date")){
+   $("recordMsg").textContent="日付を入力してください。";
+   return;
+  }
+  const old=records().find(r=>r.date===val("date"));
+  const photo=await photoToDataURL($("photoInput").files[0]);
+  const record={
+   date:val("date"),
+   weight:num("weight"),
+   cal:num("cal"),
+   p:num("p"),
+   f:num("f"),
+   c:num("c"),
+   steps:num("steps"),
+   walkCal:calcWalkCal(),
+   breakfast:val("breakfast"),
+   lunch:val("lunch"),
+   dinner:val("dinner"),
+   snack:val("snack"),
+   workout:val("workout"),
+   memo:val("memo"),
+   foods:meal(),
+   photo:photo||(old?old.photo:"")
+  };
+  const arr=records().filter(r=>r.date!==record.date);
+  arr.push(record);
+  saveRecords(arr);
+  $("photoInput").value="";
+  $("recordMsg").textContent="保存しました。";
+  showToast("記録を保存しました");
+  render();
+ }catch(e){
+  console.error(e);
+  $("recordMsg").textContent="保存に失敗しました。入力内容を確認してください。";
+  alert("保存に失敗しました: "+e.message);
+ }
+}
 function streak(){const set=new Set(records().map(r=>r.date));let d=new Date(today()),n=0;while(set.has(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"))){n++;d.setDate(d.getDate()-1)}return n}
 
 function calcWalkCal(){
