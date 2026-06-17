@@ -89,6 +89,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
   <div class="card" style="margin-bottom:14px">
     <h3>今日食べたものを追加</h3>
     <div class="grid-3">
+      <div><label>追加先</label><select id="mealSlot"><option value="breakfast">朝食</option><option value="lunch">昼食</option><option value="dinner">夕食</option><option value="snack">間食</option></select></div>
       <div><label>食品検索</label><input id="dailyFoodSearch" placeholder="例：鶏、白米、納豆"></div>
       <div><label>食品リスト</label><select id="dailyFoodSelect"></select></div>
       <div><label>量 g</label><input id="dailyFoodGram" type="number" value="100"></div>
@@ -97,6 +98,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 
     <h3>手入力で追加</h3>
     <div class="grid-3">
+      <div><label>追加先</label><select id="customMealSlot"><option value="breakfast">朝食</option><option value="lunch">昼食</option><option value="dinner">夕食</option><option value="snack">間食</option></select></div>
       <div><label>名前</label><input id="dailyCustomName" placeholder="例：外食・自作メニュー"></div>
       <div><label>kcal</label><input id="dailyCustomCal" type="number"></div>
       <div><label>P g</label><input id="dailyCustomP" type="number" step="0.1"></div>
@@ -107,7 +109,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
     <button type="button" class="secondary" id="dailyAddCustomBtn">手入力食品を追加</button>
 
     <div class="result" style="margin-top:14px">
-      <div>今日の食事合計</div>
+      <div>今日の今日の食品合計</div>
       <strong id="dailyMealTotalCal">0 kcal</strong>
       <div class="pfc">
         <div class="item"><span>P</span><b id="dailyMealP">0</b><small>g</small></div>
@@ -131,7 +133,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}th,td{border-bottom:1px
 
 <script>
 (function(){
-const RKEY="diet_records_v6_daily_food",GKEY="diet_goal_v6_daily_food",MKEY="diet_daily_meals_v6";
+const RKEY="diet_records_v7_daily_food",GKEY="diet_goal_v7_daily_food",MKEY="diet_daily_meals_v7";
 const $=id=>document.getElementById(id);
 const foodDB=[
 {name:"オートミール",cal:380,p:13.7,f:5.7,c:69.1},{name:"卵",cal:151,p:12.3,f:10.3,c:0.3},{name:"ゆで卵",cal:151,p:12.3,f:10.3,c:0.3},{name:"納豆",cal:200,p:16.5,f:10,c:12.1},{name:"鶏むね皮なし",cal:113,p:24.4,f:1.9,c:0},{name:"鶏むね皮あり",cal:191,p:19.5,f:11.6,c:0},{name:"鶏もも皮なし",cal:128,p:22,f:4.8,c:0},{name:"鶏もも皮あり",cal:190,p:16.6,f:14.2,c:0},{name:"サラダチキン",cal:113,p:24,f:1.5,c:0.5},{name:"白米",cal:156,p:2.5,f:0.3,c:37.1},{name:"玄米",cal:152,p:2.8,f:1,c:35.6},{name:"食パン",cal:248,p:8.9,f:4.1,c:46.4},{name:"うどん",cal:95,p:2.6,f:0.4,c:21.6},{name:"そば",cal:130,p:4.8,f:1,c:26},{name:"パスタゆで",cal:150,p:5.2,f:0.9,c:32},{name:"キャベツ",cal:23,p:1.3,f:0.2,c:5.2},{name:"ブロッコリー",cal:37,p:5.4,f:0.6,c:6.6},{name:"きのこ類",cal:22,p:3.1,f:0.3,c:5.2},{name:"プロテイン",cal:400,p:75,f:6,c:10},{name:"バナナ",cal:93,p:1.1,f:0.2,c:22.5},{name:"豆腐",cal:73,p:7,f:4.2,c:1.6},{name:"鮭",cal:124,p:22.3,f:4.1,c:0.1},{name:"サバ",cal:211,p:20.6,f:16.8,c:0.3},{name:"マグロ赤身",cal:125,p:26.4,f:1.4,c:0.1},{name:"ツナ水煮",cal:70,p:16,f:0.7,c:0.2},{name:"さつまいも",cal:127,p:1.2,f:0.2,c:31.9},{name:"ギリシャヨーグルト",cal:99,p:10,f:0.4,c:4},{name:"低脂肪ヨーグルト",cal:40,p:3.7,f:1,c:5.2},{name:"味噌汁",cal:40,p:2.3,f:1.1,c:5.1},{name:"プロテインバー",cal:200,p:15,f:8,c:18}];
@@ -169,9 +171,35 @@ function initFoodSelect(keyword=""){
  });
  if(!s.children.length){const o=document.createElement("option");o.value="";o.textContent="該当なし：手入力を使ってください";s.appendChild(o);}
 }
-function addFood(){if(val("dailyFoodSelect")===""){alert("食品を選ぶか、手入力を使ってください。");return}const f=foodDB[Number(val("dailyFoodSelect"))],g=num("dailyFoodGram")||100,rate=g/100;const arr=meal();arr.push({name:f.name,gram:g,cal:round(f.cal*rate),p:Math.round(f.p*rate*10)/10,f:Math.round(f.f*rate*10)/10,c:Math.round(f.c*rate*10)/10});saveMeal(arr);renderMeal()}
-function addCustom(){const name=val("dailyCustomName")||"手入力食品",memo=val("dailyCustomMemo")||"手入力";const arr=meal();arr.push({name,gram:memo,cal:num("dailyCustomCal")||0,p:num("dailyCustomP")||0,f:num("dailyCustomF")||0,c:num("dailyCustomC")||0});saveMeal(arr);renderMeal()}
-function renderMeal(){const arr=meal(),box=$("dailyMealList");box.innerHTML="";let total={cal:0,p:0,f:0,c:0};arr.forEach((x,i)=>{total.cal+=Number(x.cal)||0;total.p+=Number(x.p)||0;total.f+=Number(x.f)||0;total.c+=Number(x.c)||0;const row=document.createElement("div");row.className="food-row";row.innerHTML=`<div><b>${escapeHtml(x.name)}</b><br><span class="small">${x.gram}g</span></div><div>${x.cal}kcal</div><div>P ${x.p}g</div><div>F ${x.f}g</div><div>C ${x.c}g</div><button type="button" class="danger" data-i="${i}">×</button>`;box.appendChild(row)});box.querySelectorAll("button[data-i]").forEach(b=>b.addEventListener("click",()=>{const a=meal();a.splice(Number(b.dataset.i),1);saveMeal(a);renderMeal()}));$("dailyMealTotalCal").textContent=round(total.cal)+" kcal";$("dailyMealP").textContent=Math.round(total.p*10)/10;$("dailyMealF").textContent=Math.round(total.f*10)/10;$("dailyMealC").textContent=Math.round(total.c*10)/10;$("cal").value=round(total.cal);$("p").value=Math.round(total.p*10)/10;$("f").value=Math.round(total.f*10)/10;$("c").value=Math.round(total.c*10)/10}
+function slotLabel(slot){return slot==="breakfast"?"朝食":slot==="lunch"?"昼食":slot==="dinner"?"夕食":"間食"}
+function appendToMealText(slot,text){
+ const input=$(slot);
+ const current=val(slot).trim();
+ input.value=current ? current+"、"+text : text;
+}
+function addFood(){
+ if(val("dailyFoodSelect")===""){alert("食品を選ぶか、手入力を使ってください。");return}
+ const slot=val("mealSlot"),f=foodDB[Number(val("dailyFoodSelect"))],g=num("dailyFoodGram")||100,rate=g/100;
+ const item={slot,name:f.name,gram:g,cal:round(f.cal*rate),p:Math.round(f.p*rate*10)/10,f:Math.round(f.f*rate*10)/10,c:Math.round(f.c*rate*10)/10};
+ const arr=meal();arr.push(item);saveMeal(arr);
+ appendToMealText(slot,`${f.name}${g}g`);
+ renderMeal();
+}
+function addCustom(){
+ const slot=val("customMealSlot"),name=val("dailyCustomName")||"手入力食品",memo=val("dailyCustomMemo")||"手入力";
+ const arr=meal();arr.push({slot,name,gram:memo,cal:num("dailyCustomCal")||0,p:num("dailyCustomP")||0,f:num("dailyCustomF")||0,c:num("dailyCustomC")||0});saveMeal(arr);
+ appendToMealText(slot,`${name}${memo ? "（"+memo+"）" : ""}`);
+ renderMeal();
+}
+function rebuildMealTextFromItems(){
+ ["breakfast","lunch","dinner","snack"].forEach(id=>$(id).value="");
+ meal().forEach(x=>{
+   const slot=x.slot||"snack";
+   const gramText=typeof x.gram==="number" ? x.gram+"g" : (x.gram||"");
+   appendToMealText(slot,`${x.name}${gramText ? "（"+gramText+"）" : ""}`);
+ });
+}
+function renderMeal(){const arr=meal(),box=$("dailyMealList");box.innerHTML="";let total={cal:0,p:0,f:0,c:0};arr.forEach((x,i)=>{total.cal+=Number(x.cal)||0;total.p+=Number(x.p)||0;total.f+=Number(x.f)||0;total.c+=Number(x.c)||0;const row=document.createElement("div");row.className="food-row";row.innerHTML=`<div><b>${slotLabel(x.slot||"snack")}：${escapeHtml(x.name)}</b><br><span class="small">${x.gram}${typeof x.gram==="number" ? "g" : ""}</span></div><div>${x.cal}kcal</div><div>P ${x.p}g</div><div>F ${x.f}g</div><div>C ${x.c}g</div><button type="button" class="danger" data-i="${i}">×</button>`;box.appendChild(row)});box.querySelectorAll("button[data-i]").forEach(b=>b.addEventListener("click",()=>{const a=meal();a.splice(Number(b.dataset.i),1);saveMeal(a);rebuildMealTextFromItems();renderMeal()}));$("dailyMealTotalCal").textContent=round(total.cal)+" kcal";$("dailyMealP").textContent=Math.round(total.p*10)/10;$("dailyMealF").textContent=Math.round(total.f*10)/10;$("dailyMealC").textContent=Math.round(total.c*10)/10;$("cal").value=round(total.cal);$("p").value=Math.round(total.p*10)/10;$("f").value=Math.round(total.f*10)/10;$("c").value=Math.round(total.c*10)/10}
 function copyMealToDaily(){const arr=meal();let t={cal:0,p:0,f:0,c:0};arr.forEach(x=>{t.cal+=Number(x.cal)||0;t.p+=Number(x.p)||0;t.f+=Number(x.f)||0;t.c+=Number(x.c)||0});$("cal").value=round(t.cal);$("p").value=Math.round(t.p*10)/10;$("f").value=Math.round(t.f*10)/10;$("c").value=Math.round(t.c*10)/10;$("memo").value=(val("memo")?val("memo")+"\n":"")+"食事計算："+arr.map(x=>x.name+" "+x.gram+"g").join("、")}
 function photoToDataURL(file){return new Promise(resolve=>{if(!file){resolve("");return}const reader=new FileReader();reader.onload=e=>resolve(e.target.result);reader.readAsDataURL(file)})}
 async function saveRecord(){if(!val("date")){$("recordMsg").textContent="日付を入力してください。";return}const old=records().find(r=>r.date===val("date")),photo=await photoToDataURL($("photoInput").files[0]);const record={date:val("date"),weight:num("weight"),cal:num("cal"),p:num("p"),f:num("f"),c:num("c"),steps:num("steps"),sleep:num("sleep"),hunger:num("hunger"),fatigue:num("fatigue"),bowel:val("bowel"),breakfast:val("breakfast"),lunch:val("lunch"),dinner:val("dinner"),snack:val("snack"),workout:val("workout"),memo:val("memo"),foods:meal(),photo:photo||(old?old.photo:"")};const arr=records().filter(r=>r.date!==record.date);arr.push(record);saveRecords(arr);$("photoInput").value="";$("recordMsg").textContent="保存しました。";render()}
@@ -212,7 +240,7 @@ function exportCSV(){const rs=records();if(!rs.length){alert("記録がありま
 function clearAll(){if(confirm("すべての記録を削除しますか？")){localStorage.removeItem(RKEY);render()}}
 function escapeHtml(str){return String(str).replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[s]))}
 function loadGoal(){const g=goal();if(Object.keys(g).length){["startWeight","goalWeight","startDate","deadline","waist","chest","age","sex","height","currentWeight","activity","deficit","pRatio","fRatio","cRatio"].forEach(id=>{if(g[id]!==undefined&&$(id))$(id).value=g[id]})}}
-function init(){if(!$("startDate").value)set90();$("date").value=today();initFoodSelect();$("preset").addEventListener("change",applyPreset);$("calcBtn").addEventListener("click",calculateCalories);$("set90Btn").addEventListener("click",set90);$("saveGoalBtn").addEventListener("click",saveGoal);$("dailyFoodSearch").addEventListener("input",()=>initFoodSelect(val("dailyFoodSearch")));$("dailyAddFoodBtn").addEventListener("click",addFood);$("dailyAddCustomBtn").addEventListener("click",addCustom);$("dailyClearMealBtn").addEventListener("click",()=>{saveMeal([]);renderMeal()});$("date").addEventListener("change",renderMeal);$("saveRecordBtn").addEventListener("click",saveRecord);$("todayBtn").addEventListener("click",()=>{$("date").value=today()});$("csvBtn").addEventListener("click",exportCSV);$("clearBtn").addEventListener("click",clearAll);loadGoal();const calc=calculateCalories();if(calc&&!Object.keys(goal()).length)saveGoalData({startWeight:num("startWeight"),goalWeight:num("goalWeight"),startDate:val("startDate"),deadline:val("deadline"),waist:num("waist"),chest:num("chest"),age:num("age"),sex:val("sex"),height:num("height"),currentWeight:num("currentWeight"),activity:val("activity"),deficit:val("deficit"),...calc});renderMeal();render()}
+function init(){if(!$("startDate").value)set90();$("date").value=today();initFoodSelect();$("preset").addEventListener("change",applyPreset);$("calcBtn").addEventListener("click",calculateCalories);$("set90Btn").addEventListener("click",set90);$("saveGoalBtn").addEventListener("click",saveGoal);$("dailyFoodSearch").addEventListener("input",()=>initFoodSelect(val("dailyFoodSearch")));$("dailyAddFoodBtn").addEventListener("click",addFood);$("dailyAddCustomBtn").addEventListener("click",addCustom);$("dailyClearMealBtn").addEventListener("click",()=>{saveMeal([]);rebuildMealTextFromItems();renderMeal()});$("date").addEventListener("change",()=>{rebuildMealTextFromItems();renderMeal();});$("saveRecordBtn").addEventListener("click",saveRecord);$("todayBtn").addEventListener("click",()=>{$("date").value=today()});$("csvBtn").addEventListener("click",exportCSV);$("clearBtn").addEventListener("click",clearAll);loadGoal();const calc=calculateCalories();if(calc&&!Object.keys(goal()).length)saveGoalData({startWeight:num("startWeight"),goalWeight:num("goalWeight"),startDate:val("startDate"),deadline:val("deadline"),waist:num("waist"),chest:num("chest"),age:num("age"),sex:val("sex"),height:num("height"),currentWeight:num("currentWeight"),activity:val("activity"),deficit:val("deficit"),...calc});renderMeal();render()}
 document.addEventListener("DOMContentLoaded",init);
 })();
 </script>
