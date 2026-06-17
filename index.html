@@ -216,6 +216,38 @@ button.added{background:#16a34a!important;color:#fff!important;transform:scale(.
   gap:8px;
   margin-top:10px;
 }
+.category-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:10px;
+}
+.category-grid details{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+}
+.category-grid summary{
+  margin:0;
+  font-weight:900;
+  cursor:pointer;
+}
+.food-button-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+.food-button-grid button{
+  margin:0;
+  background:#fff;
+  color:#111827;
+  border:1px solid var(--line);
+  padding:10px;
+  font-size:13px;
+}
+
 .quick-buttons button{
   margin:0;
   background:#fff;
@@ -345,7 +377,7 @@ details summary{
   h1{font-size:23px}
   .section{padding:16px;border-radius:20px}
   .hero,.grid-4,.grid-3,.grid-2,.photo-grid,.template-buttons,.template-editor,.target-diff{grid-template-columns:1fr}
-  .quick-buttons{grid-template-columns:repeat(2,1fr)}
+  .quick-buttons{grid-template-columns:repeat(2,1fr)}.category-grid{grid-template-columns:1fr}.food-button-grid{grid-template-columns:1fr}
   .meal-tabs{grid-template-columns:repeat(2,1fr)}
   .food-row{grid-template-columns:1fr 1fr}
   .stat b{font-size:24px}
@@ -358,9 +390,9 @@ details summary{
     <div>
       <div class="small" style="color:#d1d5db;font-weight:900;">90 DAY DIET METHOD</div>
       <h1>102kg→70kg台を達成した<br>90日ダイエットメソッド</h1>
-      <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。毎日の記録を30秒で完了できます。</p>
+      <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。食品をカテゴリーから押すだけで記録できます。</p>
     </div>
-    <div class="badge">販売版 Ver1.0 仕上げ版 完成候補</div>
+    <div class="badge">販売版 Ver1.1 食品カテゴリー版 完成候補</div>
   </div>
 </header>
 
@@ -512,13 +544,19 @@ details summary{
       <p id="templateMsg" class="small"></p>
     </details>
 
-    <h3>食品を検索して追加</h3>
-    <div class="grid-3">
-      <div><label>食品検索</label><input id="foodSearch" placeholder="例：鶏、白米、納豆"></div>
-      <div><label>食品リスト</label><select id="foodSelect"></select></div>
-      <div><label>量 g</label><input id="foodGram" type="number" value="100"></div>
-    </div>
-    <button type="button" id="addFoodBtn">選択中の食事欄に追加</button>
+    <h3>カテゴリーから押すだけで追加</h3>
+    <p class="small">食品名のボタンを押すと、選択中の食事欄にすぐ追加されます。</p>
+    <div id="categoryFoods" class="category-grid"></div>
+
+    <details>
+      <summary>検索して追加する</summary>
+      <div class="grid-3">
+        <div><label>食品検索</label><input id="foodSearch" placeholder="例：鶏、白米、納豆"></div>
+        <div><label>食品リスト</label><select id="foodSelect"></select></div>
+        <div><label>量 g</label><input id="foodGram" type="number" value="100"></div>
+      </div>
+      <button type="button" id="addFoodBtn">選択中の食事欄に追加</button>
+    </details>
 
     <details>
       <summary>手入力で追加する</summary>
@@ -661,47 +699,116 @@ function setJSON(key, value){
 }
 
 const foodDB = [
-  {name:"オートミール",cal:380,p:13.7,f:5.7,c:69.1},
-  {name:"卵",cal:151,p:12.3,f:10.3,c:0.3},
-  {name:"ゆで卵",cal:151,p:12.3,f:10.3,c:0.3},
-  {name:"納豆",cal:200,p:16.5,f:10,c:12.1},
-  {name:"鶏むね皮なし",cal:113,p:24.4,f:1.9,c:0},
-  {name:"鶏むね皮あり",cal:191,p:19.5,f:11.6,c:0},
-  {name:"鶏もも皮なし",cal:128,p:22,f:4.8,c:0},
-  {name:"鶏もも皮あり",cal:190,p:16.6,f:14.2,c:0},
-  {name:"サラダチキン",cal:113,p:24,f:1.5,c:0.5},
-  {name:"白米",cal:156,p:2.5,f:0.3,c:37.1},
-  {name:"玄米",cal:152,p:2.8,f:1,c:35.6},
-  {name:"食パン",cal:248,p:8.9,f:4.1,c:46.4},
-  {name:"うどん",cal:95,p:2.6,f:0.4,c:21.6},
-  {name:"そば",cal:130,p:4.8,f:1,c:26},
-  {name:"パスタゆで",cal:150,p:5.2,f:0.9,c:32},
-  {name:"キャベツ",cal:23,p:1.3,f:0.2,c:5.2},
-  {name:"ブロッコリー",cal:37,p:5.4,f:0.6,c:6.6},
-  {name:"きのこ類",cal:22,p:3.1,f:0.3,c:5.2},
-  {name:"プロテイン",cal:400,p:75,f:6,c:10},
-  {name:"バナナ",cal:93,p:1.1,f:0.2,c:22.5},
-  {name:"豆腐",cal:73,p:7,f:4.2,c:1.6},
-  {name:"鮭",cal:124,p:22.3,f:4.1,c:0.1},
-  {name:"サバ",cal:211,p:20.6,f:16.8,c:0.3},
-  {name:"マグロ赤身",cal:125,p:26.4,f:1.4,c:0.1},
-  {name:"ツナ水煮",cal:70,p:16,f:0.7,c:0.2},
-  {name:"さつまいも",cal:127,p:1.2,f:0.2,c:31.9},
-  {name:"ギリシャヨーグルト",cal:99,p:10,f:0.4,c:4},
-  {name:"低脂肪ヨーグルト",cal:40,p:3.7,f:1,c:5.2},
-  {name:"味噌汁",cal:40,p:2.3,f:1.1,c:5.1},
-  {name:"プロテインバー",cal:200,p:15,f:8,c:18}
+  // 主食
+  {cat:"🍚 主食",name:"白米",gram:150,cal:156,p:2.5,f:0.3,c:37.1},
+  {cat:"🍚 主食",name:"白米",gram:200,cal:156,p:2.5,f:0.3,c:37.1},
+  {cat:"🍚 主食",name:"玄米",gram:150,cal:152,p:2.8,f:1,c:35.6},
+  {cat:"🍚 主食",name:"雑穀米",gram:150,cal:160,p:3,f:0.7,c:36},
+  {cat:"🍚 主食",name:"オートミール",gram:80,cal:380,p:13.7,f:5.7,c:69.1},
+  {cat:"🍚 主食",name:"食パン",gram:60,cal:248,p:8.9,f:4.1,c:46.4},
+  {cat:"🍚 主食",name:"全粒粉パン",gram:60,cal:247,p:8.8,f:4.5,c:45},
+  {cat:"🍚 主食",name:"ロールパン",gram:60,cal:316,p:10.1,f:9,c:48.6},
+  {cat:"🍚 主食",name:"うどん",gram:230,cal:95,p:2.6,f:0.4,c:21.6},
+  {cat:"🍚 主食",name:"そば",gram:200,cal:130,p:4.8,f:1,c:26},
+  {cat:"🍚 主食",name:"パスタゆで",gram:200,cal:150,p:5.2,f:0.9,c:32},
+  {cat:"🍚 主食",name:"そうめん",gram:200,cal:127,p:3.5,f:0.4,c:25.8},
+  {cat:"🍚 主食",name:"春雨",gram:100,cal:80,p:0.1,f:0.1,c:20.6},
+  {cat:"🍚 主食",name:"じゃがいも",gram:200,cal:59,p:1.8,f:0.1,c:17.3},
+  {cat:"🍚 主食",name:"さつまいも",gram:200,cal:127,p:1.2,f:0.2,c:31.9},
+  {cat:"🍚 主食",name:"コーンフレーク",gram:40,cal:381,p:7.8,f:1.7,c:83.6},
+
+  // 肉類
+  {cat:"🍗 肉類",name:"鶏むね皮なし",gram:200,cal:113,p:24.4,f:1.9,c:0},
+  {cat:"🍗 肉類",name:"鶏むね皮あり",gram:200,cal:191,p:19.5,f:11.6,c:0},
+  {cat:"🍗 肉類",name:"鶏もも皮なし",gram:150,cal:128,p:22,f:4.8,c:0},
+  {cat:"🍗 肉類",name:"鶏もも皮あり",gram:150,cal:190,p:16.6,f:14.2,c:0},
+  {cat:"🍗 肉類",name:"ささみ",gram:150,cal:98,p:23.9,f:0.8,c:0},
+  {cat:"🍗 肉類",name:"サラダチキン",gram:110,cal:113,p:24,f:1.5,c:0.5},
+  {cat:"🍗 肉類",name:"豚ロース",gram:150,cal:248,p:19.3,f:19.2,c:0.2},
+  {cat:"🍗 肉類",name:"豚ヒレ",gram:150,cal:118,p:22.2,f:3.7,c:0.2},
+  {cat:"🍗 肉類",name:"豚バラ",gram:100,cal:386,p:14.2,f:34.6,c:0.1},
+  {cat:"🍗 肉類",name:"牛もも",gram:150,cal:182,p:21.2,f:9.6,c:0.4},
+  {cat:"🍗 肉類",name:"牛肩",gram:150,cal:240,p:18.2,f:17.4,c:0.3},
+  {cat:"🍗 肉類",name:"牛赤身",gram:150,cal:140,p:22,f:5,c:0.5},
+  {cat:"🍗 肉類",name:"ハンバーグ",gram:150,cal:223,p:13.3,f:13.4,c:12.3},
+
+  // 魚類
+  {cat:"🐟 魚類",name:"鮭",gram:100,cal:124,p:22.3,f:4.1,c:0.1},
+  {cat:"🐟 魚類",name:"サバ",gram:100,cal:211,p:20.6,f:16.8,c:0.3},
+  {cat:"🐟 魚類",name:"マグロ赤身",gram:100,cal:125,p:26.4,f:1.4,c:0.1},
+  {cat:"🐟 魚類",name:"カツオ",gram:100,cal:114,p:25.8,f:0.5,c:0.1},
+  {cat:"🐟 魚類",name:"ブリ",gram:100,cal:222,p:21.4,f:17.6,c:0.3},
+  {cat:"🐟 魚類",name:"タラ",gram:100,cal:72,p:17.6,f:0.2,c:0.1},
+  {cat:"🐟 魚類",name:"アジ",gram:100,cal:112,p:19.7,f:4.5,c:0.1},
+  {cat:"🐟 魚類",name:"イワシ",gram:100,cal:156,p:19.2,f:9.2,c:0.2},
+  {cat:"🐟 魚類",name:"サンマ",gram:100,cal:287,p:18.1,f:25.6,c:0.1},
+  {cat:"🐟 魚類",name:"ツナ水煮",gram:70,cal:70,p:16,f:0.7,c:0.2},
+
+  // 卵・大豆
+  {cat:"🥚 卵・大豆",name:"卵",gram:100,cal:151,p:12.3,f:10.3,c:0.3},
+  {cat:"🥚 卵・大豆",name:"ゆで卵",gram:100,cal:151,p:12.3,f:10.3,c:0.3},
+  {cat:"🥚 卵・大豆",name:"納豆",gram:50,cal:200,p:16.5,f:10,c:12.1},
+  {cat:"🥚 卵・大豆",name:"木綿豆腐",gram:150,cal:73,p:7,f:4.2,c:1.6},
+  {cat:"🥚 卵・大豆",name:"絹豆腐",gram:150,cal:56,p:4.9,f:3,c:2},
+  {cat:"🥚 卵・大豆",name:"厚揚げ",gram:100,cal:143,p:10.7,f:11.3,c:0.9},
+  {cat:"🥚 卵・大豆",name:"豆乳",gram:200,cal:46,p:3.6,f:2,c:3.1},
+
+  // 野菜
+  {cat:"🥦 野菜",name:"キャベツ",gram:100,cal:23,p:1.3,f:0.2,c:5.2},
+  {cat:"🥦 野菜",name:"レタス",gram:100,cal:11,p:0.6,f:0.1,c:2.8},
+  {cat:"🥦 野菜",name:"ブロッコリー",gram:100,cal:37,p:5.4,f:0.6,c:6.6},
+  {cat:"🥦 野菜",name:"トマト",gram:100,cal:20,p:0.7,f:0.1,c:4.7},
+  {cat:"🥦 野菜",name:"ミニトマト",gram:100,cal:30,p:1.1,f:0.1,c:7.2},
+  {cat:"🥦 野菜",name:"にんじん",gram:100,cal:35,p:0.7,f:0.2,c:9.3},
+  {cat:"🥦 野菜",name:"玉ねぎ",gram:100,cal:33,p:1,f:0.1,c:8.8},
+  {cat:"🥦 野菜",name:"ほうれん草",gram:100,cal:18,p:2.2,f:0.4,c:3.1},
+  {cat:"🥦 野菜",name:"小松菜",gram:100,cal:13,p:1.5,f:0.2,c:2.4},
+  {cat:"🥦 野菜",name:"もやし",gram:200,cal:15,p:1.7,f:0.1,c:2.6},
+
+  // きのこ
+  {cat:"🍄 きのこ",name:"しめじ",gram:100,cal:26,p:2.7,f:0.5,c:4.8},
+  {cat:"🍄 きのこ",name:"えのき",gram:100,cal:34,p:2.7,f:0.2,c:7.6},
+  {cat:"🍄 きのこ",name:"エリンギ",gram:100,cal:31,p:2.8,f:0.4,c:6},
+  {cat:"🍄 きのこ",name:"舞茸",gram:100,cal:22,p:2,f:0.5,c:4.4},
+
+  // 果物
+  {cat:"🍌 果物",name:"バナナ",gram:100,cal:93,p:1.1,f:0.2,c:22.5},
+  {cat:"🍌 果物",name:"りんご",gram:250,cal:53,p:0.1,f:0.2,c:15.5},
+  {cat:"🍌 果物",name:"キウイ",gram:100,cal:51,p:1,f:0.2,c:13.4},
+  {cat:"🍌 果物",name:"みかん",gram:100,cal:49,p:0.7,f:0.1,c:12},
+  {cat:"🍌 果物",name:"ブルーベリー",gram:100,cal:48,p:0.5,f:0.1,c:12.9},
+
+  // 乳製品
+  {cat:"🥛 乳製品",name:"牛乳",gram:200,cal:61,p:3.3,f:3.8,c:4.8},
+  {cat:"🥛 乳製品",name:"低脂肪牛乳",gram:200,cal:42,p:3.8,f:1,c:5.5},
+  {cat:"🥛 乳製品",name:"ギリシャヨーグルト",gram:100,cal:99,p:10,f:0.4,c:4},
+  {cat:"🥛 乳製品",name:"プレーンヨーグルト",gram:100,cal:56,p:3.6,f:3,c:4.9},
+  {cat:"🥛 乳製品",name:"チーズ",gram:20,cal:313,p:22.7,f:26,c:1.3},
+
+  // 飲み物
+  {cat:"🥤 飲み物",name:"プロテイン",gram:30,cal:400,p:75,f:6,c:10},
+  {cat:"🥤 飲み物",name:"ブラックコーヒー",gram:200,cal:4,p:0.2,f:0,c:0.7},
+  {cat:"🥤 飲み物",name:"緑茶",gram:200,cal:2,p:0.2,f:0,c:0.2},
+  {cat:"🥤 飲み物",name:"炭酸水",gram:200,cal:0,p:0,f:0,c:0},
+
+  // 外食
+  {cat:"🍜 外食",name:"牛丼並",gram:1,cal:650,p:20,f:20,c:95},
+  {cat:"🍜 外食",name:"親子丼",gram:1,cal:670,p:28,f:16,c:95},
+  {cat:"🍜 外食",name:"カレーライス",gram:1,cal:750,p:18,f:25,c:110},
+  {cat:"🍜 外食",name:"ラーメン",gram:1,cal:600,p:22,f:18,c:85},
+  {cat:"🍜 外食",name:"チャーハン",gram:1,cal:700,p:18,f:24,c:95},
+  {cat:"🍜 外食",name:"唐揚げ定食",gram:1,cal:850,p:35,f:35,c:95}
 ];
 
 const defaultQuick = [
+  {name:"白米",gram:150},
+  {name:"鶏むね皮なし",gram:200},
   {name:"オートミール",gram:80},
   {name:"卵",gram:100},
   {name:"納豆",gram:50},
-  {name:"白米",gram:150},
-  {name:"鶏むね皮なし",gram:200},
+  {name:"プロテイン",gram:30},
   {name:"キャベツ",gram:100},
-  {name:"きのこ類",gram:100},
-  {name:"プロテイン",gram:30}
+  {name:"ブロッコリー",gram:100}
 ];
 
 const defaultTemplates = {
@@ -747,11 +854,12 @@ function createFoodItem(slot, name, gram){
     toast(`${name}が食品リストにありません`);
     return null;
   }
-  const rate = Number(gram || 100) / 100;
+  const amount = Number(gram || f.gram || 100);
+  const rate = f.cat === "🍜 外食" ? amount : amount / 100;
   return {
     slot: slot || "snack",
     name: f.name,
-    gram: Number(gram || 100),
+    gram: amount,
     cal: round(f.cal * rate),
     p: oneDecimal(f.p * rate),
     f: oneDecimal(f.f * rate),
@@ -805,6 +913,33 @@ function renderQuickButtons(){
     box.appendChild(btn);
   });
 }
+
+function renderCategoryFoods(){
+  const box = $("categoryFoods");
+  if(!box) return;
+  box.innerHTML = "";
+  const groups = {};
+  foodDB.forEach(f=>{
+    if(!groups[f.cat]) groups[f.cat] = [];
+    groups[f.cat].push(f);
+  });
+  Object.keys(groups).forEach(cat=>{
+    const detail = document.createElement("details");
+    detail.innerHTML = `<summary>${cat}</summary><div class="food-button-grid"></div>`;
+    const grid = detail.querySelector(".food-button-grid");
+    groups[cat].forEach(f=>{
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = cat === "🍜 外食" ? `${f.name}` : `${f.name}${f.gram}g`;
+      btn.addEventListener("click", ()=>{
+        flash(btn);
+        addItem(createFoodItem(selectedSlot(), f.name, f.gram), {learn:true});
+      });
+      grid.appendChild(btn);
+    });
+    box.appendChild(detail);
+  });
+}
 function addItem(item, options = {learn:true}){
   if(!item) return;
   const items = meal();
@@ -834,7 +969,7 @@ function initFoodSelect(keyword=""){
     if(key && !f.name.includes(key)) return;
     const opt = document.createElement("option");
     opt.value = i;
-    opt.textContent = `${f.name}（100g ${f.cal}kcal）`;
+    opt.textContent = f.cat === "🍜 外食" ? `${f.name}（${f.cal}kcal）` : `${f.name}（目安${f.gram}g / 100g ${f.cal}kcal）`;
     s.appendChild(opt);
   });
   if(!s.children.length){
@@ -843,6 +978,12 @@ function initFoodSelect(keyword=""){
     opt.textContent = "該当なし：手入力を使ってください";
     s.appendChild(opt);
   }
+  syncFoodGram();
+}
+function syncFoodGram(){
+  if(val("foodSelect")==="") return;
+  const f = foodDB[Number(val("foodSelect"))];
+  if(f) $("foodGram").value = f.gram || 100;
 }
 function addFoodFromSelect(btn){
   if(val("foodSelect")===""){
@@ -1295,6 +1436,7 @@ function drawChart(){
 }
 function renderAll(){
   renderQuickButtons();
+  renderCategoryFoods();
   renderMeal();
   renderHome();
   renderGuide();
@@ -1395,6 +1537,7 @@ function bind(){
   $("saveGoalBtn").addEventListener("click", saveGoal);
 
   $("foodSearch").addEventListener("input", ()=>initFoodSelect(val("foodSearch")));
+  $("foodSelect").addEventListener("change", syncFoodGram);
   $("addFoodBtn").addEventListener("click", ()=>addFoodFromSelect($("addFoodBtn")));
   $("addCustomBtn").addEventListener("click", ()=>addCustom($("addCustomBtn")));
   $("clearMealBtn").addEventListener("click", clearMeal);
@@ -1416,6 +1559,7 @@ function init(){
   loadGoalToForm();
   loadTemplateEditor();
   initFoodSelect();
+  renderCategoryFoods();
   setSlot("breakfast");
   calculateGoal();
   if(!Object.keys(goal()).length){
