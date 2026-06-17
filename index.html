@@ -562,8 +562,8 @@ details summary{
   </div>
   <div class="result" id="guideSummary">目標設定を保存すると表示されます。</div>
   <div class="card" style="margin-top:14px">
-    <h3>🍚 今日のおすすめ</h3>
-    <p class="small">よく食べる食品が増えるほど、あなた向けに変化します。</p>
+    <h3>🍚 今日の献立例</h3>
+    <p class="small">記録が増えるほど、よく使う食材をもとに献立例が変化します。</p>
     <div class="grid-3" id="todayRecommend"></div>
   </div>
   <div class="grid-3" id="guideCards" style="margin-top:14px"></div>
@@ -1444,7 +1444,7 @@ function renderGuide(){
         <div class="item"><span>F</span><b>${g.targetF}</b><small>g</small></div>
         <div class="item"><span>C</span><b>${g.targetC}</b><small>g</small></div>
       </div>
-      <p class="small">${used.length ? "あなたの定番食品と量を反映してカスタマイズ中です。" : "記録を続けると、よく食べるものと量に合わせて変化します。"}</p>
+      <p class="small">${used.length ? "よく使う食材と量を反映して、献立例をカスタマイズ中です。" : "記録を続けると、よく使う食材と量に合わせて献立例が変化します。"}</p>
     `;
   }else{
     $("guideSummary").textContent = "目標設定を保存すると表示されます。";
@@ -1462,7 +1462,7 @@ function renderGuide(){
 
   if(used.length >= 3){
     const chunks = [used.slice(0,3), used.slice(3,6), used.slice(6,9)];
-    ["定番食品①","定番食品②","定番食品③"].forEach((title,i)=>{
+    ["献立例①","献立例②","献立例③"].forEach((title,i)=>{
       const card = document.createElement("div");
       card.className = "card";
       const items = chunks[i].length ? chunks[i] : used.slice(0,3);
