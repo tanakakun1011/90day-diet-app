@@ -339,6 +339,37 @@ button.added{background:#16a34a!important;color:#fff!important;transform:scale(.
   padding:12px;
   font-weight:900;
 }
+.today-task{
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  color:#1e40af;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+}
+.today-task ol{
+  margin:8px 0 0 20px;
+  padding:0;
+  font-weight:800;
+}
+.big-progress b{
+  font-size:28px;
+  display:block;
+  margin-bottom:4px;
+}
+.big-progress .small{
+  font-size:13px;
+}
+.step-title{
+  display:inline-block;
+  background:#111827;
+  color:#fff;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:13px;
+  font-weight:900;
+  margin-bottom:8px;
+}
 .notice{
   background:#eff6ff;
   border:1px solid #bfdbfe;
@@ -435,7 +466,7 @@ details summary{
       <h1>102kg→70kg台を達成した<br>90日ダイエットメソッド</h1>
       <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。食品と量を学習し、あなたの定番食品として自動表示します。</p>
     </div>
-    <div class="badge">販売版 Ver1.4 最終仕上げ版 完成候補</div>
+    <div class="badge">販売版 Ver1.5 完成版 完成候補</div>
   </div>
 </header>
 
@@ -469,6 +500,16 @@ details summary{
 
 <main>
 <section id="home" class="section">
+  <div class="today-task">
+    <b>📌 今日やること</b>
+    <ol>
+      <li>食事の目安を見る</li>
+      <li>朝・昼・夜の食事を記録する</li>
+      <li>体重と歩数を入力する</li>
+      <li>保存する</li>
+    </ol>
+    <p class="small">所要時間：約30秒</p>
+  </div>
   <div class="hero">
     <div>
       <h2>ホーム</h2>
@@ -484,10 +525,11 @@ details summary{
         <div class="progress-bg"><div id="homeBar" class="progress-bar"></div></div>
         <p id="homeAdvice" class="small">まずは目標設定を確認してください。</p>
       </div>
-      <div class="card" style="margin-top:12px">
-        <b>🔥 90日プログラム進捗：<span id="programDay">-</span></b>
+      <div class="card big-progress" style="margin-top:12px">
+        <b>🔥 <span id="programDay">-</span></b>
         <div class="progress-bg"><div id="programBar" class="progress-bar"></div></div>
         <p id="programText" class="small">開始日を設定すると表示されます。</p>
+        <p id="programPercent" class="small">🏆 0%達成</p>
       </div>
       <div class="ai" id="aiAdvice" style="margin-top:12px">今日の改善コメント：記録するとアドバイスが表示されます。</div>
     </div>
@@ -571,9 +613,10 @@ details summary{
 
 <section id="daily" class="section">
   <h2>毎日の記録</h2>
-  <p class="sub">食事目安を見たあと、実際に食べたものを追加して保存します。</p>
+  <p class="sub">上から順番に入力すれば、約30秒で記録できます。</p>
 
   <div class="card" style="margin-bottom:14px">
+    <div class="step-title">① 食事を記録</div>
     <h3>今日食べたものを追加</h3>
     <div class="meal-tabs">
       <button type="button" class="active" data-slot="breakfast">朝食</button>
@@ -658,6 +701,7 @@ details summary{
     <button type="button" class="danger" id="clearMealBtn">今日の食事リストを空にする</button>
   </div>
 
+  <div class="step-title">② 体重と歩数を入力</div>
   <div class="grid-2">
     <div class="card">
       <div class="grid-2">
@@ -681,6 +725,7 @@ details summary{
     </div>
   </div>
 
+  <div class="step-title">③ メモを書いて保存</div>
   <label>メモ</label><textarea id="memo" placeholder="体調、反省点、明日の調整など"></textarea>
   <label>写真</label><input id="photoInput" type="file" accept="image/*">
   <button type="button" id="saveRecordBtn">記録を保存</button>
@@ -1386,6 +1431,7 @@ function renderProgramProgress(g){
     dayEl.textContent = "-";
     textEl.textContent = "開始日を設定すると表示されます。";
     barEl.style.width = "0%";
+    if($("programPercent")) $("programPercent").textContent = "🏆 0%達成";
     return;
   }
 
@@ -1399,6 +1445,7 @@ function renderProgramProgress(g){
   dayEl.textContent = `${capped}日目 / 90日`;
   textEl.textContent = `残り${left}日。まずは今日の記録を1つ残しましょう。`;
   barEl.style.width = `${percent}%`;
+  if($("programPercent")) $("programPercent").textContent = `🏆 ${Math.round(percent)}%達成`;
 }
 
 function renderHome(){
