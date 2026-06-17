@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <title>90日ダイエット実践アプリ</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="container">
+      <p class="eyebrow">90 DAY DIET TRACKER</p>
+      <h1>90日ダイエット実践アプリ</h1>
+      <p>目標体重・摂取カロリー・PFC・毎日の記録・分析を1つで管理。</p>
+    </div>
+  </header>
+
+  <nav class="bottom-nav" aria-label="メインメニュー">
+    <button class="nav-btn active" data-page="home" type="button">🏠<span>ホーム</span></button>
+    <button class="nav-btn" data-page="goal" type="button">🎯<span>目標</span></button>
+    <button class="nav-btn" data-page="record" type="button">📝<span>記録</span></button>
+    <button class="nav-btn" data-page="analysis" type="button">📈<span>分析</span></button>
+  </nav>
+
+  <main class="container app">
+    <section id="page-home" class="page active">
+      <div class="card">
+        <h2>ホーム</h2>
+        <div class="stats">
+          <div class="stat"><b id="latestWeight">-</b><span>最新体重</span></div>
+          <div class="stat"><b id="remainingWeight">-</b><span>目標まで</span></div>
+          <div class="stat"><b id="recordCount">0日</b><span>記録日数</span></div>
+          <div class="stat"><b id="daysLeft">-</b><span>期限まで</span></div>
+        </div>
+        <div class="progress-block">
+          <div class="row"><b>達成率</b><b id="progressText">0%</b></div>
+          <div class="progress"><div id="progressBar"></div></div>
+        </div>
+      </div>
+
+      <div class="card accent-card">
+        <h2>今日の目標</h2>
+        <div class="target-cal" id="homeTargetCal">未設定</div>
+        <div class="pfc-grid">
+          <div><span>P</span><b id="homeP">-</b><small>g</small></div>
+          <div><span>F</span><b id="homeF">-</b><small>g</small></div>
+          <div><span>C</span><b id="homeC">-</b><small>g</small></div>
+        </div>
+        <p id="homeAdvice" class="muted">まずは目標設定をしてください。</p>
+      </div>
+    </section>
+
+    <section id="page-goal" class="page">
+      <form id="goalForm" class="card">
+        <h2>目標設定</h2>
+        <h3>基本目標</h3>
+        <div class="form-grid">
+          <label>開始体重 kg<input id="startWeight" type="number" step="0.1" inputmode="decimal" placeholder="102" /></label>
+          <label>目標体重 kg<input id="goalWeight" type="number" step="0.1" inputmode="decimal" placeholder="75" /></label>
+          <label>開始日<input id="startDate" type="date" /></label>
+          <label>期限<input id="deadline" type="date" /></label>
+        </div>
+
+        <h3>総摂取カロリー計算</h3>
+        <div class="form-grid">
+          <label>年齢<input id="age" type="number" inputmode="numeric" placeholder="36" /></label>
+          <label>性別<select id="sex"><option value="male">男性</option><option value="female">女性</option></select></label>
+          <label>身長 cm<input id="height" type="number" step="0.1" inputmode="decimal" placeholder="177" /></label>
+          <label>現在体重 kg<input id="currentWeight" type="number" step="0.1" inputmode="decimal" placeholder="80" /></label>
+          <label>活動量<select id="activity"><option value="1.2">ほぼ運動なし</option><option value="1.375">軽い運動・週1〜3回</option><option value="1.55">中程度・週3〜5回</option><option value="1.725">高い・週6回以上</option><option value="1.9">かなり高い</option></select></label>
+          <label>減量用マイナスkcal<select id="deficit"><option value="300">-300 kcal ゆるめ</option><option value="500" selected>-500 kcal 標準</option><option value="700">-700 kcal 早め</option><option value="1000">-1000 kcal 攻める</option></select></label>
+        </div>
+
+        <h3>PFCバランス</h3>
+        <div class="form-grid">
+          <label>P %<input id="pRatio" type="number" inputmode="numeric" value="30" /></label>
+          <label>F %<input id="fRatio" type="number" inputmode="numeric" value="20" /></label>
+          <label>C %<input id="cRatio" type="number" inputmode="numeric" value="50" /></label>
+          <label>プリセット<select id="preset"><option value="">選択しない</option><option value="30,20,50">標準 P30 F20 C50</option><option value="35,15,50">脂質制限 P35 F15 C50</option><option value="30,30,40">バランス P30 F30 C40</option><option value="40,20,40">高タンパク P40 F20 C40</option></select></label>
+        </div>
+
+        <div id="calcResult" class="result-box">計算結果がここに表示されます。</div>
+        <div class="button-row">
+          <button id="calcBtn" type="button">カロリーとPFCを計算</button>
+          <button id="set90Btn" class="secondary" type="button">今日から90日</button>
+          <button id="saveGoalBtn" type="submit">保存</button>
+        </div>
+        <p id="goalMessage" class="message"></p>
+      </form>
+    </section>
+
+    <section id="page-record" class="page">
+      <form id="recordForm" class="card">
+        <h2>毎日の記録</h2>
+        <div class="form-grid">
+          <label>日付<input id="recordDate" type="date" required /></label>
+          <label>体重 kg<input id="weight" type="number" step="0.1" inputmode="decimal" /></label>
+          <label>カロリー kcal<input id="calories" type="number" inputmode="numeric" /></label>
+          <label>タンパク質 P g<input id="protein" type="number" step="0.1" inputmode="decimal" /></label>
+          <label>脂質 F g<input id="fat" type="number" step="0.1" inputmode="decimal" /></label>
+          <label>炭水化物 C g<input id="carbs" type="number" step="0.1" inputmode="decimal" /></label>
+          <label>歩数<input id="steps" type="number" inputmode="numeric" /></label>
+          <label>運動<input id="workout" placeholder="腕立て10回×5セット" /></label>
+        </div>
+        <label>メモ<textarea id="memo" placeholder="今日の気づき、空腹感、食べすぎた理由など"></textarea></label>
+        <div class="button-row">
+          <button type="submit">記録を保存</button>
+          <button id="todayBtn" class="secondary" type="button">今日の日付</button>
+        </div>
+        <p id="recordMessage" class="message"></p>
+      </form>
+    </section>
+
+    <section id="page-analysis" class="page">
+      <div class="card">
+        <h2>分析</h2>
+        <p id="judgeText" class="judge">記録すると判定が表示されます。</p>
+        <canvas id="weightChart" width="900" height="280"></canvas>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>日付</th><th>体重</th><th>kcal</th><th>P</th><th>F</th><th>C</th><th>判定</th><th></th></tr></thead>
+            <tbody id="recordRows"></tbody>
+          </table>
+        </div>
+        <div class="button-row">
+          <button id="exportBtn" class="secondary" type="button">CSV出力</button>
+          <button id="clearBtn" class="danger" type="button">全データ削除</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
