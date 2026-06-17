@@ -195,6 +195,41 @@ button.added{background:#16a34a!important;color:#fff!important;transform:scale(.
   transition:.25s;
 }
 .toast.show{opacity:1}
+.modal-bg{
+  position:fixed;
+  inset:0;
+  background:rgba(17,24,39,.5);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:1000;
+  padding:16px;
+}
+.modal-bg.show{display:flex}
+.modal{
+  width:min(520px,100%);
+  background:#fff;
+  border-radius:24px;
+  padding:18px;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
+}
+.amount-options{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+.amount-options button{
+  margin:0;
+  background:#fff;
+  color:#111827;
+  border:1px solid var(--line);
+}
+.amount-options button.active{
+  background:#111827;
+  color:#fff;
+}
+
 .meal-tabs{
   display:grid;
   grid-template-columns:repeat(4,1fr);
@@ -377,7 +412,7 @@ details summary{
   h1{font-size:23px}
   .section{padding:16px;border-radius:20px}
   .hero,.grid-4,.grid-3,.grid-2,.photo-grid,.template-buttons,.template-editor,.target-diff{grid-template-columns:1fr}
-  .quick-buttons{grid-template-columns:repeat(2,1fr)}.category-grid{grid-template-columns:1fr}.food-button-grid{grid-template-columns:1fr}
+  .quick-buttons{grid-template-columns:repeat(2,1fr)}.category-grid{grid-template-columns:1fr}.food-button-grid{grid-template-columns:1fr}.amount-options{grid-template-columns:repeat(2,1fr)}
   .meal-tabs{grid-template-columns:repeat(2,1fr)}
   .food-row{grid-template-columns:1fr 1fr}
   .stat b{font-size:24px}
@@ -390,9 +425,9 @@ details summary{
     <div>
       <div class="small" style="color:#d1d5db;font-weight:900;">90 DAY DIET METHOD</div>
       <h1>102kg→70kg台を達成した<br>90日ダイエットメソッド</h1>
-      <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。食品をカテゴリーから押すだけで記録できます。</p>
+      <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。食品をカテゴリーから選び、量を選んで記録できます。</p>
     </div>
-    <div class="badge">販売版 Ver1.1 食品カテゴリー版 完成候補</div>
+    <div class="badge">販売版 Ver1.2 量選択版 完成候補</div>
   </div>
 </header>
 
@@ -409,6 +444,20 @@ details summary{
 </nav>
 
 <div id="toast" class="toast">保存しました</div>
+
+<div id="amountModal" class="modal-bg">
+  <div class="modal">
+    <h3 id="modalFoodName">食品を追加</h3>
+    <p class="small" id="modalFoodInfo">量を選んで追加してください。</p>
+    <div id="amountOptions" class="amount-options"></div>
+    <label>自由入力</label>
+    <div class="grid-2">
+      <div><input id="customAmount" type="number" placeholder="例：180"></div>
+      <div><button type="button" id="addCustomAmountBtn">この量で追加</button></div>
+    </div>
+    <button type="button" class="secondary" id="closeAmountModalBtn">キャンセル</button>
+  </div>
+</div>
 
 <main>
 <section id="home" class="section">
@@ -555,7 +604,7 @@ details summary{
         <div><label>食品リスト</label><select id="foodSelect"></select></div>
         <div><label>量 g</label><input id="foodGram" type="number" value="100"></div>
       </div>
-      <button type="button" id="addFoodBtn">選択中の食事欄に追加</button>
+      <button type="button" id="addFoodBtn">入力した量で追加</button>
     </details>
 
     <details>
@@ -907,11 +956,68 @@ function renderQuickButtons(){
     btn.type = "button";
     btn.textContent = `${q.name}${q.gram}g${q.count ? `（${q.count}回）` : ""}`;
     btn.addEventListener("click", ()=>{
-      flash(btn);
-      addItem(createFoodItem(selectedSlot(), q.name, q.gram), {learn:true});
+      const f = findFood(q.name);
+      openAmountModal({...f, gram:q.gram}, btn);
     });
     box.appendChild(btn);
   });
+}
+
+
+let pendingFood = null;
+
+function amountChoices(food){
+  const cat = food.cat || "";
+  if(cat === "🍜 外食") return [{label:food.name, gram:1}];
+  if(food.name.includes("卵")) return [{label:"1個", gram:50},{label:"2個", gram:100},{label:"3個", gram:150}];
+  if(food.name.includes("納豆")) return [{label:"1パック", gram:50},{label:"2パック", gram:100}];
+  if(food.name.includes("プロテイン")) return [{label:"1杯", gram:30},{label:"2杯", gram:60}];
+  if(food.name.includes("豆乳") || food.name.includes("牛乳") || food.name.includes("コーヒー") || food.name.includes("緑茶") || food.name.includes("炭酸水")) return [{label:"100ml", gram:100},{label:"200ml", gram:200},{label:"300ml", gram:300}];
+  if(cat === "🍚 主食") return [{label:"100g", gram:100},{label:"150g", gram:150},{label:"200g", gram:200},{label:"250g", gram:250},{label:"300g", gram:300}];
+  if(cat === "🍗 肉類" || cat === "🐟 魚類") return [{label:"100g", gram:100},{label:"150g", gram:150},{label:"200g", gram:200},{label:"250g", gram:250},{label:"300g", gram:300}];
+  if(cat === "🥦 野菜" || cat === "🍄 きのこ") return [{label:"50g", gram:50},{label:"100g", gram:100},{label:"150g", gram:150},{label:"200g", gram:200}];
+  if(cat === "🍌 果物") return [{label:"50g", gram:50},{label:"100g", gram:100},{label:"150g", gram:150},{label:"200g", gram:200}];
+  if(cat === "🥛 乳製品") return [{label:"50g", gram:50},{label:"100g", gram:100},{label:"150g", gram:150},{label:"200g", gram:200}];
+  return [{label:"50g", gram:50},{label:"100g", gram:100},{label:"150g", gram:150},{label:"200g", gram:200}];
+}
+
+function openAmountModal(food, sourceButton){
+  pendingFood = food;
+  $("modalFoodName").textContent = food.name;
+  $("modalFoodInfo").textContent = food.cat === "🍜 外食" ? "このメニューを追加します。" : "量を選んで追加してください。";
+  $("customAmount").value = food.cat === "🍜 外食" ? "" : (food.gram || 100);
+  const box = $("amountOptions");
+  box.innerHTML = "";
+  amountChoices(food).forEach(opt=>{
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = opt.label;
+    if(Number(opt.gram) === Number(food.gram)) btn.classList.add("active");
+    btn.addEventListener("click", ()=>{
+      flash(btn);
+      addItem(createFoodItem(selectedSlot(), food.name, opt.gram), {learn:true});
+      closeAmountModal();
+    });
+    box.appendChild(btn);
+  });
+  if(sourceButton) flash(sourceButton);
+  $("amountModal").classList.add("show");
+}
+
+function closeAmountModal(){
+  $("amountModal").classList.remove("show");
+  pendingFood = null;
+}
+
+function addPendingCustomAmount(){
+  if(!pendingFood) return;
+  const amount = Number(val("customAmount") || pendingFood.gram || 100);
+  if(!amount || amount <= 0){
+    alert("量を入力してください。");
+    return;
+  }
+  addItem(createFoodItem(selectedSlot(), pendingFood.name, amount), {learn:true});
+  closeAmountModal();
 }
 
 function renderCategoryFoods(){
@@ -932,8 +1038,7 @@ function renderCategoryFoods(){
       btn.type = "button";
       btn.textContent = cat === "🍜 外食" ? `${f.name}` : `${f.name}${f.gram}g`;
       btn.addEventListener("click", ()=>{
-        flash(btn);
-        addItem(createFoodItem(selectedSlot(), f.name, f.gram), {learn:true});
+        openAmountModal(f, btn);
       });
       grid.appendChild(btn);
     });
@@ -1542,6 +1647,9 @@ function bind(){
   $("addCustomBtn").addEventListener("click", ()=>addCustom($("addCustomBtn")));
   $("clearMealBtn").addEventListener("click", clearMeal);
   $("saveTemplatesBtn").addEventListener("click", saveTemplateEditor);
+  $("closeAmountModalBtn").addEventListener("click", closeAmountModal);
+  $("amountModal").addEventListener("click", (e)=>{ if(e.target.id==="amountModal") closeAmountModal(); });
+  $("addCustomAmountBtn").addEventListener("click", addPendingCustomAmount);
 
   $("date").addEventListener("change", loadDateData);
   $("steps").addEventListener("input", updateWalkCal);
