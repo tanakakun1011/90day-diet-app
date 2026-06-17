@@ -358,9 +358,9 @@ details summary{
     <div>
       <div class="small" style="color:#d1d5db;font-weight:900;">90 DAY DIET METHOD</div>
       <h1>102kg→70kg台を達成した<br>90日ダイエットメソッド</h1>
-      <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。</p>
+      <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。毎日の記録を30秒で完了できます。</p>
     </div>
-    <div class="badge">販売版 Ver1.0</div>
+    <div class="badge">販売版 Ver1.0 仕上げ版 完成候補</div>
   </div>
 </header>
 
@@ -368,8 +368,8 @@ details summary{
   <div class="nav-inner">
     <a href="#home">🏠 ホーム</a>
     <a href="#goal">🎯 目標設定</a>
-    <a href="#daily">📝 毎日の記録</a>
     <a href="#guide">🍚 食事目安</a>
+    <a href="#daily">📝 毎日の記録</a>
     <a href="#analysis">📈 分析</a>
     <a href="#photo">📷 写真</a>
     <a href="#backup">💾 バックアップ</a>
@@ -395,7 +395,7 @@ details summary{
         <div class="progress-bg"><div id="homeBar" class="progress-bar"></div></div>
         <p id="homeAdvice" class="small">まずは目標設定を確認してください。</p>
       </div>
-      <div class="ai" id="aiAdvice" style="margin-top:12px">AI風コメント：記録すると改善アドバイスが表示されます。</div>
+      <div class="ai" id="aiAdvice" style="margin-top:12px">今日の改善コメント：記録するとアドバイスが表示されます。</div>
     </div>
 
     <div class="result">
@@ -464,9 +464,20 @@ details summary{
   <p id="goalMsg" class="small"></p>
 </section>
 
+
+<section id="guide" class="section">
+  <h2>今日の食事目安</h2>
+  <p class="sub">まずここを見てから記録します。最初は目標PFCから自動作成し、記録を続けるとよく食べる食品に合わせて変化します。</p>
+  <div class="notice" style="margin-bottom:14px">
+    使い方：この目安を参考に食べる → 下の「毎日の記録」で食品を追加 → 体重と歩数を入れて保存。
+  </div>
+  <div class="result" id="guideSummary">目標設定を保存すると表示されます。</div>
+  <div class="grid-3" id="guideCards" style="margin-top:14px"></div>
+</section>
+
 <section id="daily" class="section">
   <h2>毎日の記録</h2>
-  <p class="sub">毎日30秒で記録できるように、必要な項目だけに絞っています。</p>
+  <p class="sub">食事目安を見たあと、実際に食べたものを追加して保存します。</p>
 
   <div class="card" style="margin-bottom:14px">
     <h3>今日食べたものを追加</h3>
@@ -577,12 +588,6 @@ details summary{
   <p id="recordMsg" class="small"></p>
 </section>
 
-<section id="guide" class="section">
-  <h2>食事の目安</h2>
-  <p class="sub">最初は目標PFCから自動作成。記録を続けると、よく食べている食品を反映した目安に変わります。</p>
-  <div class="result" id="guideSummary">目標設定を保存すると表示されます。</div>
-  <div class="grid-3" id="guideCards" style="margin-top:14px"></div>
-</section>
 
 <section id="analysis" class="section">
   <h2>分析</h2>
@@ -1141,7 +1146,7 @@ function renderHome(){
   if(latest){
     const j = judge(latest);
     $("homeAdvice").textContent = `最新判定：${j.text}`;
-    $("aiAdvice").textContent = `AI風コメント：${j.text}${latest.walkCal ? ` / 歩数消費：約${latest.walkCal}kcal` : ""}`;
+    $("aiAdvice").textContent = `改善コメント：${j.text}${latest.walkCal ? ` / 歩数消費：約${latest.walkCal}kcal` : ""}`;
   }
 }
 function renderGuide(){
