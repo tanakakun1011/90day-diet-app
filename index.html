@@ -480,6 +480,39 @@ button.added{background:#16a34a!important;color:#fff!important;transform:scale(.
   border-radius:16px;
   padding:13px;
 }
+.weekly-report{
+  background:#f8fafc;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+}
+.weekly-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:12px;
+}
+.weekly-grid .item{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  text-align:center;
+}
+.weekly-grid .item b{
+  display:block;
+  font-size:22px;
+}
+.weekly-comment{
+  margin-top:12px;
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#9a3412;
+  border-radius:14px;
+  padding:12px;
+  font-weight:800;
+}
 .food-list{display:grid;gap:8px;margin-top:10px}
 .food-row{
   display:grid;
@@ -546,7 +579,7 @@ details summary{
   header .wrap{display:block}
   h1{font-size:23px}
   .section{padding:16px;border-radius:20px}
-  .hero,.grid-4,.grid-3,.grid-2,.photo-grid,.template-buttons,.template-editor,.target-diff,.pfc-donut-wrap,.remaining-breakdown{grid-template-columns:1fr}
+  .hero,.grid-4,.grid-3,.grid-2,.photo-grid,.template-buttons,.template-editor,.target-diff,.pfc-donut-wrap,.remaining-breakdown,.weekly-grid{grid-template-columns:1fr}
   .quick-buttons{grid-template-columns:repeat(2,1fr)}.category-grid{grid-template-columns:1fr}.food-button-grid{grid-template-columns:1fr}.amount-options{grid-template-columns:repeat(2,1fr)}
   .meal-tabs{grid-template-columns:repeat(2,1fr)}
   .food-row{grid-template-columns:1fr 1fr}
@@ -562,7 +595,7 @@ details summary{
       <h1>102kg→70kg台を達成した<br>90日ダイエットメソッド</h1>
       <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。食品と量を学習し、あなたの定番食品として自動表示します。</p>
     </div>
-    <div class="badge">販売版 Ver1.7 最終UX版 完成候補</div>
+    <div class="badge">販売版 Ver1.9 週間レポート版 完成候補</div>
   </div>
 </header>
 
@@ -853,6 +886,17 @@ details summary{
 
 <section id="analysis" class="section">
   <h2>分析</h2>
+  <div class="weekly-report">
+    <h3>📊 今週の振り返り</h3>
+    <p class="small">直近7日間の記録から自動で集計します。</p>
+    <div class="weekly-grid">
+      <div class="item"><span>平均体重</span><b id="weekAvgWeight">-</b></div>
+      <div class="item"><span>先週比</span><b id="weekWeightDiff">-</b></div>
+      <div class="item"><span>達成率</span><b id="weekScore">-</b></div>
+      <div class="item"><span>平均歩数</span><b id="weekAvgSteps">-</b></div>
+    </div>
+    <div id="weekComment" class="weekly-comment">記録が増えると振り返りが表示されます。</div>
+  </div>
   <div class="grid-4" style="margin-bottom:14px">
     <div class="card stat"><b id="avg7">-</b><span>7日平均体重</span></div>
     <div class="card stat"><b id="avg30">-</b><span>30日平均体重</span></div>
@@ -1745,7 +1789,54 @@ function renderGuide(){
   }
 }
 
+
+function weekAverage(list, field){
+  const vals = list.map(x=>Number(x[field])).filter(x=>!Number.isNaN(x) && x > 0);
+  if(!vals.length) return null;
+  return vals.reduce((a,b)=>a+b,0) / vals.length;
+}
+function renderWeeklyReport(){
+  const rs = records();
+  const current = rs.slice(-7);
+  const prev = rs.slice(-14, -7);
+
+  const avgWeight = weekAverage(current, "weight");
+  const prevWeight = weekAverage(prev, "weight");
+  const avgSteps = weekAverage(current, "steps");
+  const avgCal = weekAverage(current, "cal");
+
+  $("weekAvgWeight").textContent = avgWeight ? `${oneDecimal(avgWeight)}kg` : "-";
+  $("weekAvgSteps").textContent = avgSteps ? `${round(avgSteps)}歩` : "-";
+
+  if(avgWeight && prevWeight){
+    const diff = oneDecimal(avgWeight - prevWeight);
+    $("weekWeightDiff").textContent = `${diff > 0 ? "+" : ""}${diff}kg`;
+  }else{
+    $("weekWeightDiff").textContent = "-";
+  }
+
+  let score = 0;
+  if(current.length >= 5) score += 30;
+  if(avgWeight && prevWeight && avgWeight < prevWeight) score += 30;
+  if(avgSteps && avgSteps >= 5000) score += 20;
+  if(avgCal && goal().targetCal && Math.abs(avgCal - goal().targetCal) <= 250) score += 20;
+
+  $("weekScore").textContent = current.length ? `${score}%` : "-";
+
+  let comment = "まずは5日分の記録を目指しましょう。";
+  if(current.length >= 5 && score >= 80){
+    comment = "🏆 順調です。記録・体重・歩数のバランスが良い週です。";
+  }else if(current.length >= 5 && score >= 50){
+    comment = "🔥 いい流れです。来週は歩数か摂取カロリーを少し整えるとさらに良くなります。";
+  }else if(current.length >= 5){
+    comment = "💡 記録はできています。まずは食事量か歩数のどちらか1つだけ改善しましょう。";
+  }
+
+  $("weekComment").textContent = comment;
+}
+
 function renderAnalysis(){
+  renderWeeklyReport();
   const rs = records();
   const last7 = rs.slice(-7);
   const last30 = rs.slice(-30);
