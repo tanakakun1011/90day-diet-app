@@ -630,6 +630,10 @@ details summary{
         <div class="progress-bg"><div id="homeBar" class="progress-bar"></div></div>
         <p id="homeAdvice" class="small">まずは目標設定を確認してください。</p>
       </div>
+      <div id="aiAdviceCard" class="card" style="margin-top:12px">
+        <h3>🤖 今日のAIアドバイス</h3>
+        <div id="aiAdvice">まずは食事を記録してください。</div>
+      </div>
       <div class="card big-progress" style="margin-top:12px">
         <b>🔥 <span id="programDay">-</span></b>
         <div class="progress-bg"><div id="programBar" class="progress-bar"></div></div>
@@ -1415,6 +1419,7 @@ function renderMeal(){
 
   renderDiff(total);
   updateTaskRemaining();
+  renderAiAdvice();
 
   const box = $("mealList");
   box.innerHTML = "";
@@ -1600,6 +1605,54 @@ function updateTaskRemaining(){
   if($("remainMorning")) $("remainMorning").textContent = base === null ? "-" : `${Math.round(base*0.3)} kcal`;
   if($("remainLunch")) $("remainLunch").textContent = base === null ? "-" : `${Math.round(base*0.35)} kcal`;
   if($("remainDinner")) $("remainDinner").textContent = base === null ? "-" : `${Math.round(base*0.35)} kcal`;
+}
+
+
+function renderAiAdvice(){
+  if(!$("aiAdvice")) return;
+
+  const g = goal();
+  const total = mealTotal();
+
+  if(!g.targetCal){
+    $("aiAdvice").innerHTML = "⚙️ 目標設定を保存すると表示されます。";
+    return;
+  }
+
+  const remainCal = Math.max(0, Math.round(g.targetCal - total.cal));
+  const remainP = Math.max(0, Math.round((g.targetP||0) - total.p));
+  const remainF = Math.max(0, Math.round((g.targetF||0) - total.f));
+  const remainC = Math.max(0, Math.round((g.targetC||0) - total.c));
+
+  let foods = [];
+
+  if(remainP >= 20){
+    foods.push("🍗 鶏むね100g");
+  }else if(remainP >= 10){
+    foods.push("🥚 卵2個");
+  }
+
+  if(remainC >= 30){
+    foods.push("🍚 白米100g");
+  }
+
+  if(remainF >= 10){
+    foods.push("🥜 ナッツ10g");
+  }
+
+  if(!foods.length){
+    foods.push("🏆 バランス良好です");
+  }
+
+  $("aiAdvice").innerHTML = `
+    <div>🔥 残り ${remainCal} kcal</div>
+    <div>P：あと ${remainP}g</div>
+    <div>F：あと ${remainF}g</div>
+    <div>C：あと ${remainC}g</div>
+    <hr>
+    <div><b>おすすめ</b></div>
+    ${foods.join("<br>")}
+  `;
 }
 
 function renderHome(){
