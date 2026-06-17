@@ -398,6 +398,51 @@ button.added{background:#16a34a!important;color:#fff!important;transform:scale(.
   padding:16px;
   margin-bottom:14px;
 }
+.settings-summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.settings-badge{
+  background:#111827;
+  color:#fff;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:900;
+}
+.remaining-card{
+  border-radius:18px;
+  padding:16px;
+  margin-top:10px;
+  font-weight:900;
+  border:1px solid var(--line);
+}
+.remaining-card strong{
+  display:block;
+  font-size:34px;
+  line-height:1.1;
+  margin:4px 0;
+}
+.remaining-green{background:#f0fdf4;color:#14532d;border-color:#bbf7d0}
+.remaining-yellow{background:#fefce8;color:#854d0e;border-color:#fde68a}
+.remaining-orange{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+.remaining-red{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+.remaining-breakdown{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:10px;
+}
+.remaining-breakdown div{
+  background:#fff;
+  border-radius:12px;
+  padding:8px;
+  text-align:center;
+  color:#111827;
+  border:1px solid rgba(0,0,0,.08);
+}
 .today-task ol{
   margin:8px 0 0 20px;
   padding:0;
@@ -501,7 +546,7 @@ details summary{
   header .wrap{display:block}
   h1{font-size:23px}
   .section{padding:16px;border-radius:20px}
-  .hero,.grid-4,.grid-3,.grid-2,.photo-grid,.template-buttons,.template-editor,.target-diff,.pfc-donut-wrap{grid-template-columns:1fr}
+  .hero,.grid-4,.grid-3,.grid-2,.photo-grid,.template-buttons,.template-editor,.target-diff,.pfc-donut-wrap,.remaining-breakdown{grid-template-columns:1fr}
   .quick-buttons{grid-template-columns:repeat(2,1fr)}.category-grid{grid-template-columns:1fr}.food-button-grid{grid-template-columns:1fr}.amount-options{grid-template-columns:repeat(2,1fr)}
   .meal-tabs{grid-template-columns:repeat(2,1fr)}
   .food-row{grid-template-columns:1fr 1fr}
@@ -517,14 +562,14 @@ details summary{
       <h1>102kg→70kg台を達成した<br>90日ダイエットメソッド</h1>
       <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。食品と量を学習し、あなたの定番食品として自動表示します。</p>
     </div>
-    <div class="badge">販売版 Ver1.6 UX改善版 完成候補</div>
+    <div class="badge">販売版 Ver1.7 最終UX版 完成候補</div>
   </div>
 </header>
 
 <nav>
   <div class="nav-inner">
     <a href="#home">🏠 ホーム</a>
-    <a href="#goal">🎯 目標設定</a>
+    <a href="#goal">⚙️ 設定</a>
     <a href="#guide">🍚 食事目安</a>
     <a href="#daily">📝 毎日の記録</a>
     <a href="#analysis">📈 分析</a>
@@ -560,9 +605,14 @@ details summary{
       <li>保存する</li>
     </ol>
     <p class="small">所要時間：約30秒</p>
-    <div class="result" style="margin-top:10px;padding:12px">
-      <div>今日の残り摂取カロリー</div>
+    <div id="taskRemainingCard" class="remaining-card remaining-green">
+      <div>🔥 今日の残り摂取カロリー</div>
       <strong id="taskRemainingCal">-</strong>
+      <div class="remaining-breakdown">
+        <div>朝目安<br><span id="remainMorning">-</span></div>
+        <div>昼目安<br><span id="remainLunch">-</span></div>
+        <div>夜目安<br><span id="remainDinner">-</span></div>
+      </div>
     </div>
   </div>
   <div class="hero">
@@ -597,9 +647,9 @@ details summary{
           <div class="pfc-donut-center" id="homePfcCenter">P -g<br>F -g<br>C -g</div>
         </div>
         <div class="pfc-legend">
-          <div>🔵 P タンパク質：<span id="homeP">-</span>g</div>
-          <div>🟡 F 脂質：<span id="homeF">-</span>g</div>
-          <div>🟢 C 炭水化物：<span id="homeC">-</span>g</div>
+          <div>🔵 P タンパク質：<span id="homeP">-</span>g（<span id="homePRatio">-</span>%）</div>
+          <div>🟡 F 脂質：<span id="homeF">-</span>g（<span id="homeFRatio">-</span>%）</div>
+          <div>🟢 C 炭水化物：<span id="homeC">-</span>g（<span id="homeCRatio">-</span>%）</div>
         </div>
       </div>
     </div>
@@ -607,10 +657,10 @@ details summary{
 </section>
 
 <section id="goal" class="section">
-  <h2>目標設定</h2>
-  <p class="sub">一度保存したら普段は閉じておけます。変更したい時だけ開いてください。</p>
+  <h2>⚙️ 設定</h2>
+  <p class="sub">プロフィール・目標・PFCを変更したい時だけ開きます。普段は閉じたままでOKです。</p>
   <details id="goalDetails" class="goal-details" open>
-    <summary>🎯 目標設定を開く / 閉じる</summary>
+    <summary><span class="settings-summary"><span>⚙️ プロフィール・目標設定を開く</span><span class="settings-badge">普段は閉じる</span></span></summary>
 
   <div class="grid-2">
     <div class="card">
@@ -1312,12 +1362,12 @@ function calculateGoal(){
     <div>目標摂取カロリー：<strong>${result.targetCal} kcal</strong></div>
     <div class="pfc-donut-wrap">
       <div class="pfc-donut" style="background:conic-gradient(#2563eb 0 ${result.pRatio}%, #ca8a04 ${result.pRatio}% ${result.pRatio+result.fRatio}%, #16a34a ${result.pRatio+result.fRatio}% 100%)">
-        <div class="pfc-donut-center">P ${result.targetP}g<br>F ${result.targetF}g<br>C ${result.targetC}g</div>
+        <div class="pfc-donut-center">${result.targetCal} kcal<br>P${result.targetP} / F${result.targetF}<br>C${result.targetC}</div>
       </div>
       <div class="pfc-legend">
-        <div>🔵 P タンパク質：${result.targetP}g</div>
-        <div>🟡 F 脂質：${result.targetF}g</div>
-        <div>🟢 C 炭水化物：${result.targetC}g</div>
+        <div>🔵 P タンパク質：${result.targetP}g（${result.pRatio}%）</div>
+        <div>🟡 F 脂質：${result.targetF}g（${result.fRatio}%）</div>
+        <div>🟢 C 炭水化物：${result.targetC}g（${result.cRatio}%）</div>
       </div>
     </div>
   `;
@@ -1528,15 +1578,28 @@ function updateHomePfcChart(g){
   const pEnd = pRatio;
   const fEnd = pRatio + fRatio;
   donut.style.background = `conic-gradient(#2563eb 0 ${pEnd}%, #ca8a04 ${pEnd}% ${fEnd}%, #16a34a ${fEnd}% 100%)`;
-  center.innerHTML = `P ${g.targetP || "-"}g<br>F ${g.targetF || "-"}g<br>C ${g.targetC || "-"}g`;
+  center.innerHTML = `${g.targetCal || "-"} kcal<br>P${g.targetP || "-"} / F${g.targetF || "-"}<br>C${g.targetC || "-"}`;
 }
 function updateTaskRemaining(){
   const g = goal();
   const total = mealTotal();
   const remain = g.targetCal ? Math.round(g.targetCal - total.cal) : null;
+  const card = $("taskRemainingCard");
   if($("taskRemainingCal")){
     $("taskRemainingCal").textContent = remain === null ? "-" : `${remain} kcal`;
   }
+  if(card){
+    card.classList.remove("remaining-green","remaining-yellow","remaining-orange","remaining-red");
+    if(remain === null) card.classList.add("remaining-green");
+    else if(remain >= 1500) card.classList.add("remaining-green");
+    else if(remain >= 500) card.classList.add("remaining-yellow");
+    else if(remain >= 0) card.classList.add("remaining-orange");
+    else card.classList.add("remaining-red");
+  }
+  const base = remain === null ? null : Math.max(0, remain);
+  if($("remainMorning")) $("remainMorning").textContent = base === null ? "-" : `${Math.round(base*0.3)} kcal`;
+  if($("remainLunch")) $("remainLunch").textContent = base === null ? "-" : `${Math.round(base*0.35)} kcal`;
+  if($("remainDinner")) $("remainDinner").textContent = base === null ? "-" : `${Math.round(base*0.35)} kcal`;
 }
 
 function renderHome(){
@@ -1568,6 +1631,9 @@ function renderHome(){
   $("homeP").textContent = g.targetP || "-";
   $("homeF").textContent = g.targetF || "-";
   $("homeC").textContent = g.targetC || "-";
+  if($("homePRatio")) $("homePRatio").textContent = g.pRatio || "-";
+  if($("homeFRatio")) $("homeFRatio").textContent = g.fRatio || "-";
+  if($("homeCRatio")) $("homeCRatio").textContent = g.cRatio || "-";
   updateHomePfcChart(g);
   updateTaskRemaining();
 
