@@ -257,6 +257,14 @@ button.added{background:#16a34a!important;color:#fff!important;transform:scale(.
   gap:10px;
   margin-top:10px;
 }
+.recommend-card{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+}
+.recommend-card b{display:block;margin-bottom:6px}
+
 .category-grid details{
   background:#fff;
   border:1px solid var(--line);
@@ -425,9 +433,9 @@ details summary{
     <div>
       <div class="small" style="color:#d1d5db;font-weight:900;">90 DAY DIET METHOD</div>
       <h1>102kg→70kg台を達成した<br>90日ダイエットメソッド</h1>
-      <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。食品をカテゴリーから選び、量を選んで記録できます。</p>
+      <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。食品と量を学習し、あなたの定番食品として自動表示します。</p>
     </div>
-    <div class="badge">販売版 Ver1.2 量選択版 完成候補</div>
+    <div class="badge">販売版 Ver1.3 定番食品学習版 完成候補</div>
   </div>
 </header>
 
@@ -553,6 +561,11 @@ details summary{
     使い方：この目安を参考に食べる → 下の「毎日の記録」で食品を追加 → 体重と歩数を入れて保存。
   </div>
   <div class="result" id="guideSummary">目標設定を保存すると表示されます。</div>
+  <div class="card" style="margin-top:14px">
+    <h3>🍚 今日のおすすめ</h3>
+    <p class="small">よく食べる食品が増えるほど、あなた向けに変化します。</p>
+    <div class="grid-3" id="todayRecommend"></div>
+  </div>
   <div class="grid-3" id="guideCards" style="margin-top:14px"></div>
 </section>
 
@@ -570,8 +583,8 @@ details summary{
     </div>
     <input id="selectedSlot" type="hidden" value="breakfast">
 
-    <h3>よく食べるもの（自動学習）</h3>
-    <p class="small">追加回数が多い食品が自動で上に出ます。朝食・昼食などの表示はしません。</p>
+    <h3>⭐ あなたの定番食品</h3>
+    <p class="small">よく使う食品と量を自動で学習します。同じ白米でも150g/200g/250gを別々に覚えます。</p>
     <div class="quick-buttons" id="quickButtons"></div>
 
     <h3>テンプレート</h3>
@@ -951,10 +964,12 @@ function quickFoods(){
 function renderQuickButtons(){
   const box = $("quickButtons");
   box.innerHTML = "";
-  quickFoods().forEach(q=>{
+  quickFoods().forEach((q,index)=>{
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.textContent = `${q.name}${q.gram}g${q.count ? `（${q.count}回）` : ""}`;
+    const medals = ["🥇 ","🥈 ","🥉 "];
+    const prefix = medals[index] || "";
+    btn.textContent = `${prefix}${q.name}${q.gram}g${q.count ? `（${q.count}回）` : ""}`;
     btn.addEventListener("click", ()=>{
       const f = findFood(q.name);
       openAmountModal({...f, gram:q.gram}, btn);
@@ -1395,9 +1410,31 @@ function renderHome(){
     $("aiAdvice").textContent = `改善コメント：${j.text}${latest.walkCal ? ` / 歩数消費：約${latest.walkCal}kcal` : ""}`;
   }
 }
+function topUsedFoods(limit=9){
+  return Object.values(usage()).sort((a,b)=>b.count-a.count).slice(0,limit);
+}
+function renderTodayRecommend(){
+  const box = $("todayRecommend");
+  if(!box) return;
+  box.innerHTML = "";
+  const used = topUsedFoods(9);
+  const fallback = [
+    [{name:"オートミール",gram:80},{name:"卵",gram:100},{name:"納豆",gram:50}],
+    [{name:"鶏むね皮なし",gram:200},{name:"白米",gram:150},{name:"キャベツ",gram:100}],
+    [{name:"鶏むね皮なし",gram:200},{name:"白米",gram:150},{name:"きのこ類",gram:100}]
+  ];
+  const groups = used.length >= 3 ? [used.slice(0,3), used.slice(3,6), used.slice(6,9)] : fallback;
+  ["朝のおすすめ","昼のおすすめ","夜のおすすめ"].forEach((title,i)=>{
+    const items = groups[i] && groups[i].length ? groups[i] : groups[0];
+    const div = document.createElement("div");
+    div.className = "recommend-card";
+    div.innerHTML = `<b>${title}</b>${items.map(x=>`${escapeHtml(x.name)} ${x.gram}g`).join("<br>")}`;
+    box.appendChild(div);
+  });
+}
 function renderGuide(){
   const g = goal();
-  const used = Object.values(usage()).sort((a,b)=>b.count-a.count).slice(0,9);
+  const used = topUsedFoods(9);
   if(g.targetCal){
     $("guideSummary").innerHTML = `
       <div>あなたの1日の目安</div>
@@ -1407,11 +1444,13 @@ function renderGuide(){
         <div class="item"><span>F</span><b>${g.targetF}</b><small>g</small></div>
         <div class="item"><span>C</span><b>${g.targetC}</b><small>g</small></div>
       </div>
-      <p class="small">${used.length ? "よく食べるものを反映してカスタマイズ中です。" : "記録を続けると、よく食べるものに合わせて目安が変わります。"}</p>
+      <p class="small">${used.length ? "あなたの定番食品と量を反映してカスタマイズ中です。" : "記録を続けると、よく食べるものと量に合わせて変化します。"}</p>
     `;
   }else{
     $("guideSummary").textContent = "目標設定を保存すると表示されます。";
   }
+
+  renderTodayRecommend();
 
   const fallback = [
     {title:"朝食の目安", foods:["オートミール 80g","卵 100g","納豆 50g"]},
@@ -1423,10 +1462,11 @@ function renderGuide(){
 
   if(used.length >= 3){
     const chunks = [used.slice(0,3), used.slice(3,6), used.slice(6,9)];
-    ["よく食べる目安①","よく食べる目安②","よく食べる目安③"].forEach((title,i)=>{
+    ["定番食品①","定番食品②","定番食品③"].forEach((title,i)=>{
       const card = document.createElement("div");
       card.className = "card";
-      card.innerHTML = `<h3>${title}</h3><p>${(chunks[i].length?chunks[i]:used.slice(0,3)).map(x=>`${escapeHtml(x.name)} ${x.gram}g`).join("<br>")}</p>`;
+      const items = chunks[i].length ? chunks[i] : used.slice(0,3);
+      card.innerHTML = `<h3>${title}</h3><p>${items.map(x=>`${escapeHtml(x.name)} ${x.gram}g（${x.count}回）`).join("<br>")}</p>`;
       box.appendChild(card);
     });
   }else{
@@ -1438,6 +1478,7 @@ function renderGuide(){
     });
   }
 }
+
 function renderAnalysis(){
   const rs = records();
   const last7 = rs.slice(-7);
