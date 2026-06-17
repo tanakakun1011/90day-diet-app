@@ -197,7 +197,7 @@ button.added{background:#16a34a!important;color:#fff!important;transform:scale(.
 
 <script>
 (function(){
-const RKEY="diet_records_v12_daily_food",GKEY="diet_goal_v12_daily_food",MKEY="diet_daily_meals_v12";
+const RKEY="diet_records_v13_daily_food",GKEY="diet_goal_v13_daily_food",MKEY="diet_daily_meals_v13";
 const $=id=>document.getElementById(id);
 const foodDB=[
 {name:"オートミール",cal:380,p:13.7,f:5.7,c:69.1},{name:"卵",cal:151,p:12.3,f:10.3,c:0.3},{name:"ゆで卵",cal:151,p:12.3,f:10.3,c:0.3},{name:"納豆",cal:200,p:16.5,f:10,c:12.1},{name:"鶏むね皮なし",cal:113,p:24.4,f:1.9,c:0},{name:"鶏むね皮あり",cal:191,p:19.5,f:11.6,c:0},{name:"鶏もも皮なし",cal:128,p:22,f:4.8,c:0},{name:"鶏もも皮あり",cal:190,p:16.6,f:14.2,c:0},{name:"サラダチキン",cal:113,p:24,f:1.5,c:0.5},{name:"白米",cal:156,p:2.5,f:0.3,c:37.1},{name:"玄米",cal:152,p:2.8,f:1,c:35.6},{name:"食パン",cal:248,p:8.9,f:4.1,c:46.4},{name:"うどん",cal:95,p:2.6,f:0.4,c:21.6},{name:"そば",cal:130,p:4.8,f:1,c:26},{name:"パスタゆで",cal:150,p:5.2,f:0.9,c:32},{name:"キャベツ",cal:23,p:1.3,f:0.2,c:5.2},{name:"ブロッコリー",cal:37,p:5.4,f:0.6,c:6.6},{name:"きのこ類",cal:22,p:3.1,f:0.3,c:5.2},{name:"プロテイン",cal:400,p:75,f:6,c:10},{name:"バナナ",cal:93,p:1.1,f:0.2,c:22.5},{name:"豆腐",cal:73,p:7,f:4.2,c:1.6},{name:"鮭",cal:124,p:22.3,f:4.1,c:0.1},{name:"サバ",cal:211,p:20.6,f:16.8,c:0.3},{name:"マグロ赤身",cal:125,p:26.4,f:1.4,c:0.1},{name:"ツナ水煮",cal:70,p:16,f:0.7,c:0.2},{name:"さつまいも",cal:127,p:1.2,f:0.2,c:31.9},{name:"ギリシャヨーグルト",cal:99,p:10,f:0.4,c:4},{name:"低脂肪ヨーグルト",cal:40,p:3.7,f:1,c:5.2},{name:"味噌汁",cal:40,p:2.3,f:1.1,c:5.1},{name:"プロテインバー",cal:200,p:15,f:8,c:18}];
@@ -215,7 +215,6 @@ function registerFoodUsage(item){
  if(!map[key]) map[key]={name:item.name,gram:item.gram,count:0};
  map[key].count += 1;
  saveUsageMap(map);
- renderQuickButtons();
  loadFavoriteEditor();
 }
 function quickFoods(){
@@ -254,13 +253,19 @@ function loadTemplateEditor(){
  $("templateDinnerText").value=templateToText(t.dinner);
 }
 function saveTemplateEditor(){
- saveTemplates({
-  breakfast:parseTemplateText($("templateBreakfastText").value),
-  lunch:parseTemplateText($("templateLunchText").value),
-  dinner:parseTemplateText($("templateDinnerText").value)
- });
- $("templateMsg").textContent="テンプレートを保存しました。";
- showToast("テンプレートを保存しました");
+ try{
+  saveTemplates({
+   breakfast:parseTemplateText($("templateBreakfastText").value),
+   lunch:parseTemplateText($("templateLunchText").value),
+   dinner:parseTemplateText($("templateDinnerText").value)
+  });
+  $("templateMsg").textContent="テンプレートを保存しました。";
+  showToast("テンプレートを保存しました");
+ }catch(e){
+  console.error(e);
+  $("templateMsg").textContent="テンプレート保存に失敗しました。";
+  alert("テンプレート保存に失敗しました: "+e.message);
+ }
 }
 function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function addDays(s,days){const d=s?new Date(s):new Date();d.setDate(d.getDate()+days);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
@@ -298,8 +303,10 @@ function initFoodSelect(keyword=""){
 }
 function slotLabel(slot){return slot==="breakfast"?"朝食":slot==="lunch"?"昼食":slot==="dinner"?"夕食":"間食"}
 function appendToMealText(slot,text){
- const input=$(slot);
- const current=val(slot).trim();
+ const target=slot||"snack";
+ const input=$(target);
+ if(!input)return;
+ const current=val(target).trim();
  input.value=current ? current+"、"+text : text;
 }
 
@@ -308,7 +315,9 @@ function setMealSlot(slot){
  if($("customMealSlot")) $("customMealSlot").value=slot;
  document.querySelectorAll("[data-slot-btn]").forEach(b=>b.classList.toggle("active", b.dataset.slotBtn===slot));
 }
-function foodByName(name){return foodDB.find(f=>f.name===name)}
+function foodByName(name){
+ return foodDB.find(f=>f.name===name) || foodDB.find(f=>f.name.includes(name) || name.includes(f.name));
+}
 function showToast(text){
  const t=$("toast"); if(!t)return;
  t.textContent=text; t.classList.add("show");
@@ -322,17 +331,23 @@ function flashButton(btn){
 }
 function createFoodItem(slot,name,gram){
  const f=foodByName(name);
- if(!f)return null;
+ if(!f){
+  showToast(`${name}が食品リストにありません`);
+  return null;
+ }
  const rate=gram/100;
- return {slot,name:f.name,gram,cal:round(f.cal*rate),p:Math.round(f.p*rate*10)/10,f:Math.round(f.f*rate*10)/10,c:Math.round(f.c*rate*10)/10};
+ return {slot:slot||"snack",name:f.name,gram,cal:round(f.cal*rate),p:Math.round(f.p*rate*10)/10,f:Math.round(f.f*rate*10)/10,c:Math.round(f.c*rate*10)/10};
 }
 function addItemToMeal(item){
  if(!item)return;
- const arr=meal();arr.push(item);saveMeal(arr);
- registerFoodUsage(item);
+ const arr=meal();
+ arr.push(item);
+ saveMeal(arr);
  appendToMealText(item.slot,`${item.name}${item.gram}g`);
  renderMeal();
+ registerFoodUsage(item);
  showToast(`${slotLabel(item.slot)}に${item.name}${item.gram}gを追加しました`);
+ setTimeout(renderQuickButtons, 450);
 }
 function renderQuickButtons(){
  const box=$("quickButtons"); if(!box)return;
@@ -340,15 +355,31 @@ function renderQuickButtons(){
  quickFoods().forEach(q=>{
   const btn=document.createElement("button");
   btn.type="button";
-  btn.textContent=`${q.name}${q.gram}g`;
-  btn.addEventListener("click",()=>{addItemToMeal(createFoodItem(val("mealSlot"),q.name,q.gram));flashButton(btn);});
+  btn.textContent=`${q.name}${q.gram}g${q.count ? "（"+q.count+"回）" : ""}`;
+  btn.addEventListener("click",()=>{flashButton(btn);addItemToMeal(createFoodItem(val("mealSlot"),q.name,q.gram));});
   box.appendChild(btn);
  });
 }
 function addTemplate(slot,btn){
- (templates()[slot]||[]).forEach(x=>addItemToMeal(createFoodItem(slot,x.name,x.gram)));
- flashButton(btn);
- showToast(`${slotLabel(slot)}テンプレを追加しました`);
+ try{
+  flashButton(btn);
+  const arr=meal();
+  (templates()[slot]||[]).forEach(x=>{
+   const item=createFoodItem(slot,x.name,x.gram);
+   if(item){
+    arr.push(item);
+    appendToMealText(item.slot,`${item.name}${item.gram}g`);
+    registerFoodUsage(item);
+   }
+  });
+  saveMeal(arr);
+  renderMeal();
+  setTimeout(renderQuickButtons, 450);
+  showToast(`${slotLabel(slot)}テンプレを追加しました`);
+ }catch(e){
+  console.error(e);
+  alert("テンプレ追加に失敗しました: "+e.message);
+ }
 }
 function addFood(){
  if(val("dailyFoodSelect")===""){alert("食品を選ぶか、手入力を使ってください。");return}
