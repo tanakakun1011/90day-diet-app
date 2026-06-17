@@ -435,7 +435,7 @@ details summary{
       <h1>102kg→70kg台を達成した<br>90日ダイエットメソッド</h1>
       <p>目標設定・食事テンプレ・毎日の記録・分析を1つにまとめた販売用ダイエット管理アプリ。食品と量を学習し、あなたの定番食品として自動表示します。</p>
     </div>
-    <div class="badge">販売版 Ver1.3 定番食品学習版 完成候補</div>
+    <div class="badge">販売版 Ver1.4 最終仕上げ版 完成候補</div>
   </div>
 </header>
 
@@ -483,6 +483,11 @@ details summary{
         <b>目標達成率：<span id="homeRate">0%</span></b>
         <div class="progress-bg"><div id="homeBar" class="progress-bar"></div></div>
         <p id="homeAdvice" class="small">まずは目標設定を確認してください。</p>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <b>🔥 90日プログラム進捗：<span id="programDay">-</span></b>
+        <div class="progress-bg"><div id="programBar" class="progress-bar"></div></div>
+        <p id="programText" class="small">開始日を設定すると表示されます。</p>
       </div>
       <div class="ai" id="aiAdvice" style="margin-top:12px">今日の改善コメント：記録するとアドバイスが表示されます。</div>
     </div>
@@ -561,11 +566,6 @@ details summary{
     使い方：この目安を参考に食べる → 下の「毎日の記録」で食品を追加 → 体重と歩数を入れて保存。
   </div>
   <div class="result" id="guideSummary">目標設定を保存すると表示されます。</div>
-  <div class="card" style="margin-top:14px">
-    <h3>🍚 今日の献立例</h3>
-    <p class="small">記録が増えるほど、よく使う食材をもとに献立例が変化します。</p>
-    <div class="grid-3" id="todayRecommend"></div>
-  </div>
   <div class="grid-3" id="guideCards" style="margin-top:14px"></div>
 </section>
 
@@ -1375,6 +1375,32 @@ function judge(record){
     text: `${score}点：${label}` + (tips.length ? `。明日は「${tips[0]}」を意識しましょう。` : "。この調子で継続しましょう。")
   };
 }
+
+function renderProgramProgress(g){
+  const dayEl = $("programDay");
+  const textEl = $("programText");
+  const barEl = $("programBar");
+  if(!dayEl || !textEl || !barEl) return;
+
+  if(!g.startDate){
+    dayEl.textContent = "-";
+    textEl.textContent = "開始日を設定すると表示されます。";
+    barEl.style.width = "0%";
+    return;
+  }
+
+  const start = new Date(g.startDate);
+  const now = new Date(today());
+  const day = Math.max(1, Math.floor((now - start) / 86400000) + 1);
+  const capped = Math.min(90, day);
+  const percent = Math.max(0, Math.min(100, (capped / 90) * 100));
+  const left = Math.max(0, 90 - capped);
+
+  dayEl.textContent = `${capped}日目 / 90日`;
+  textEl.textContent = `残り${left}日。まずは今日の記録を1つ残しましょう。`;
+  barEl.style.width = `${percent}%`;
+}
+
 function renderHome(){
   const rs = records();
   const g = goal();
@@ -1384,6 +1410,7 @@ function renderHome(){
   $("homeLatest").textContent = latest ? `${oneDecimal(latest.weight)}kg` : "-";
   $("homeRemain").textContent = latest && g.goalWeight ? `${oneDecimal(Number(latest.weight)-Number(g.goalWeight))}kg` : "-";
   $("homeStreak").textContent = `${streakCount()}日`;
+  renderProgramProgress(g);
 
   if(g.deadline){
     const left = Math.ceil((new Date(g.deadline)-new Date(today()))/86400000);
@@ -1413,25 +1440,6 @@ function renderHome(){
 function topUsedFoods(limit=9){
   return Object.values(usage()).sort((a,b)=>b.count-a.count).slice(0,limit);
 }
-function renderTodayRecommend(){
-  const box = $("todayRecommend");
-  if(!box) return;
-  box.innerHTML = "";
-  const used = topUsedFoods(9);
-  const fallback = [
-    [{name:"オートミール",gram:80},{name:"卵",gram:100},{name:"納豆",gram:50}],
-    [{name:"鶏むね皮なし",gram:200},{name:"白米",gram:150},{name:"キャベツ",gram:100}],
-    [{name:"鶏むね皮なし",gram:200},{name:"白米",gram:150},{name:"きのこ類",gram:100}]
-  ];
-  const groups = used.length >= 3 ? [used.slice(0,3), used.slice(3,6), used.slice(6,9)] : fallback;
-  ["朝のおすすめ","昼のおすすめ","夜のおすすめ"].forEach((title,i)=>{
-    const items = groups[i] && groups[i].length ? groups[i] : groups[0];
-    const div = document.createElement("div");
-    div.className = "recommend-card";
-    div.innerHTML = `<b>${title}</b>${items.map(x=>`${escapeHtml(x.name)} ${x.gram}g`).join("<br>")}`;
-    box.appendChild(div);
-  });
-}
 function renderGuide(){
   const g = goal();
   const used = topUsedFoods(9);
@@ -1444,13 +1452,12 @@ function renderGuide(){
         <div class="item"><span>F</span><b>${g.targetF}</b><small>g</small></div>
         <div class="item"><span>C</span><b>${g.targetC}</b><small>g</small></div>
       </div>
-      <p class="small">${used.length ? "よく使う食材と量を反映して、献立例をカスタマイズ中です。" : "記録を続けると、よく使う食材と量に合わせて献立例が変化します。"}</p>
+      <p class="small">${used.length ? "よく使う食材と量を反映して、朝・昼・夜の献立例をカスタマイズ中です。" : "記録を続けると、よく使う食材と量に合わせて朝・昼・夜の献立例が変化します。"}</p>
     `;
   }else{
     $("guideSummary").textContent = "目標設定を保存すると表示されます。";
   }
 
-  renderTodayRecommend();
 
   const fallback = [
     {title:"朝食の目安", foods:["オートミール 80g","卵 100g","納豆 50g"]},
@@ -1462,7 +1469,7 @@ function renderGuide(){
 
   if(used.length >= 3){
     const chunks = [used.slice(0,3), used.slice(3,6), used.slice(6,9)];
-    ["献立例①","献立例②","献立例③"].forEach((title,i)=>{
+    ["🌅 朝の献立例","☀️ 昼の献立例","🌙 夜の献立例"].forEach((title,i)=>{
       const card = document.createElement("div");
       card.className = "card";
       const items = chunks[i].length ? chunks[i] : used.slice(0,3);
